@@ -19,7 +19,6 @@
     .status { white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 10px; }
     #qrReader { width: 100%; }
 
-    /* ---- uploader widgets ---- */
     .slotCard{ border:1px solid #e5e5e5; border-radius:12px; padding:12px; background:#fff; }
     .slotActions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
     .slotActions button{ padding:8px 10px; border-radius:10px; font-size:14px; }
@@ -58,6 +57,7 @@
       <label>Fecha (YYYY-MM-DD)</label>
       <input id="dateStr" type="date" />
       <div class="small">Si no eliges fecha, usa la de hoy.</div>
+      <div class="small"><b>Tip:</b> aquí se comprime antes de subir (más rápido).</div>
     </div>
 
     <div class="row">
@@ -73,7 +73,6 @@
     <div class="slotCard" data-slot="vin">
       <label>1) Foto del VIN</label>
 
-      <!-- ✅ back camera -->
       <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="vin_cam">
       <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="vin_file">
 
@@ -89,18 +88,18 @@
       </div>
     </div>
 
-    <!-- 2) COMPRESIÓN (4 fotos en 1 contenedor, sin cilindros) -->
+    <!-- 2) COMPRESIÓN: 4 fotos APILADAS 4->3->2->1 -->
     <div class="slotCard" data-slot="comp">
-      <label>2) Compresión (sube 4 fotos)</label>
+      <label>2) Compresión (toma 4 fotos)</label>
 
-      <!-- ✅ back camera + multiple -->
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam" multiple>
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file" multiple>
+      <!-- ✅ SIN multiple: una por una y se apila como quieres -->
+      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
+      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file">
 
       <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="comp">📷 Tomar fotos</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="comp">🖼️ Subir archivos</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="comp">🧹 Quitar</button>
+        <button class="btn3" type="button" data-pick="cam" data-slot="comp">📷 Tomar foto (agrega)</button>
+        <button class="btn3" type="button" data-pick="file" data-slot="comp">🖼️ Subir archivo (agrega)</button>
+        <button class="btn3" type="button" data-clear="1" data-slot="comp">🧹 Quitar todas</button>
       </div>
 
       <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;">
@@ -119,7 +118,6 @@
     <div class="slotCard" data-slot="corr_pre">
       <label>6) Corriente antes</label>
 
-      <!-- ✅ back camera -->
       <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="corr_pre_cam">
       <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="corr_pre_file">
 
@@ -139,7 +137,6 @@
     <div class="slotCard" data-slot="corr_post">
       <label>7) Corriente después</label>
 
-      <!-- ✅ back camera -->
       <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="corr_post_cam">
       <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="corr_post_file">
 
@@ -159,7 +156,6 @@
     <div class="slotCard" data-slot="voltaje">
       <label>8) Voltaje</label>
 
-      <!-- ✅ back camera -->
       <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="voltaje_cam">
       <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="voltaje_file">
 
@@ -179,7 +175,6 @@
     <div class="slotCard" data-slot="scan_carro">
       <label>9) Scan del carro</label>
 
-      <!-- ✅ back camera -->
       <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="scan_carro_cam">
       <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="scan_carro_file">
 
@@ -209,15 +204,6 @@
     const APS_URL = "https://script.google.com/macros/s/AKfycbw8WdoYVKGU9ztmHv81c-GzcUxpaCdMn5mvk5XgqJQ7kicbivdr6DFRIgTEOq_nIUMV/exec";
     const $ = (id) => document.getElementById(id);
 
-    // slots reales que existen en backend (Drive)
-    const slots = [
-      "vin",
-      "comp_1","comp_2","comp_3","comp_4",
-      "corr_pre","corr_post",
-      "voltaje",
-      "scan_carro"
-    ];
-
     const slotLabels = {
       vin: "Foto del VIN",
       comp_1: "Compresión",
@@ -230,11 +216,15 @@
       scan_carro: "Scan del carro",
     };
 
+    // slots backend
+    const slots = ["vin","comp_1","comp_2","comp_3","comp_4","corr_pre","corr_post","voltaje","scan_carro"];
+
     // 1 foto por slot normal
     const selectedFilesBySlot = {};
 
-    // compresión: 4 fotos en un solo contenedor (orden de selección)
-    let compFiles = [];
+    // compresión VISUAL [1..4] => guardamos un array de 4 posiciones (puede tener null)
+    // regla: cada foto nueva entra en el 4, y empuja 4->3->2->1
+    let compFilesVisual = [null, null, null, null];
 
     function todayYYYYMMDD() {
       const d = new Date();
@@ -243,10 +233,7 @@
       const day = String(d.getDate()).padStart(2,'0');
       return `${y}-${m}-${day}`;
     }
-
-    (function initDate(){
-      $("dateStr").value = todayYYYYMMDD();
-    })();
+    (function initDate(){ $("dateStr").value = todayYYYYMMDD(); })();
 
     async function callAPS(payload){
       const res = await fetch(APS_URL, {
@@ -267,25 +254,22 @@
     function setPreview(slot, file){
       const box = $(`${slot}_previewBox`);
       const meta = $(`${slot}_meta`);
-
       if (!file){
         box.innerHTML = `<span class="small">Sin foto</span>`;
         meta.textContent = "Ningún archivo seleccionado.";
         return;
       }
-
       meta.textContent = `${file.name || "(foto)"} • ${humanBytes(file.size || 0)}`;
       const url = URL.createObjectURL(file);
       box.innerHTML = `<img alt="preview" src="${url}">`;
       setTimeout(() => URL.revokeObjectURL(url), 15000);
     }
 
-    // ====== COMPRESIÓN: 4 fotos en un solo contenedor ======
+    // ====== COMPRESIÓN (APILAR AL REVÉS) ======
     function clearComp(){
-      compFiles = [];
+      compFilesVisual = [null, null, null, null];
       ["comp_p1","comp_p2","comp_p3","comp_p4"].forEach((id, idx) => {
-        const box = $(id);
-        box.innerHTML = `<span class="small">${idx+1}</span>`;
+        $(id).innerHTML = `<span class="small">${idx+1}</span>`;
       });
       $("comp_meta").textContent = "Ningún archivo seleccionado.";
       const cam = $("comp_cam"); const fil = $("comp_file");
@@ -294,9 +278,10 @@
     }
 
     function renderCompPreviews(){
-      ["comp_p1","comp_p2","comp_p3","comp_p4"].forEach((id, idx) => {
+      const ids = ["comp_p1","comp_p2","comp_p3","comp_p4"];
+      ids.forEach((id, idx) => {
         const box = $(id);
-        const f = compFiles[idx];
+        const f = compFilesVisual[idx];
         if (!f){
           box.innerHTML = `<span class="small">${idx+1}</span>`;
           return;
@@ -306,21 +291,42 @@
         setTimeout(() => URL.revokeObjectURL(url), 15000);
       });
 
-      if (!compFiles.length) {
-        $("comp_meta").textContent = "Ningún archivo seleccionado.";
-      } else {
-        const totalSize = compFiles.reduce((a,f)=>a+(f.size||0),0);
-        $("comp_meta").textContent = `${compFiles.length}/4 seleccionadas • ${humanBytes(totalSize)}`;
+      const chosen = compFilesVisual.filter(Boolean);
+      if (!chosen.length) $("comp_meta").textContent = "Ningún archivo seleccionado.";
+      else {
+        const totalSize = chosen.reduce((a,f)=>a+(f.size||0),0);
+        $("comp_meta").textContent = `${chosen.length}/4 seleccionadas • ${humanBytes(totalSize)} (entra al 4 y empuja atrás)`;
       }
     }
 
-    function onPickComp(fileList){
-      const list = Array.from(fileList || []);
-      if (!list.length) return;
-      compFiles = list.slice(0, 4);
+    // ✅ cada foto nueva entra al slot 4, empuja 4->3->2->1 (y si hay 5, se pierde la 1)
+    function addCompOne(file){
+      if (!file) return;
+      // desplazar: 1<-2<-3<-4 , 4<-nuevo
+      compFilesVisual[0] = compFilesVisual[1];
+      compFilesVisual[1] = compFilesVisual[2];
+      compFilesVisual[2] = compFilesVisual[3];
+      compFilesVisual[3] = file;
       renderCompPreviews();
     }
 
+    function onPickCompOne(fileList){
+      const f = (fileList && fileList[0]) ? fileList[0] : null;
+      if (!f) return;
+      addCompOne(f);
+      // reset input para poder tomar otra foto “igual” sin problemas
+      $("comp_cam").value = "";
+      $("comp_file").value = "";
+    }
+
+    // ====== COMPRESIÓN: inputs ======
+    (function wireComp(){
+      clearComp();
+      $("comp_cam").addEventListener("change", (e) => onPickCompOne(e.target.files));
+      $("comp_file").addEventListener("change", (e) => onPickCompOne(e.target.files));
+    })();
+
+    // ====== STATUS ======
     function renderStatus(j){
       let s = "";
       s += `VIN: ${j.vin}\n`;
@@ -336,7 +342,6 @@
 
       const otherSlots = ["vin","corr_pre","corr_post","voltaje","scan_carro"];
       let missing = [];
-
       for (const slot of otherSlots){
         const ok = j.status && j.status[slot];
         const p = j.previews && j.previews[slot];
@@ -348,7 +353,6 @@
 
       const allMissingCount = compMissingCount + missing.length;
       s += `\nFaltantes (${allMissingCount}/9):\n- ` + (allMissingCount ? ["Compresión ("+compOkCount+"/4)", ...missing].join("\n- ") : "Ninguno 🎉");
-
       $("out").textContent = s;
     }
 
@@ -356,28 +360,62 @@
       const vin = $("vinText").value.trim();
       const dateStr = ($("dateStr").value || todayYYYYMMDD());
       if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
-
       const j = await callAPS({ action: "getStatus", vin, dateStr });
       if (!j.ok) { $("out").textContent = "❌ getStatus: " + j.error; return; }
       renderStatus(j);
     }
-
     $("btnRefresh").onclick = refreshStatus;
     $("vinText").addEventListener("change", refreshStatus);
     $("dateStr").addEventListener("change", refreshStatus);
 
-    function fileToB64(file) {
-      return new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => {
-          const b64 = String(r.result).split(",")[1] || "";
-          resolve(b64);
-        };
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
+    // ====== COMPRESIÓN/REDIMENSION ANTES DE BASE64 (ACELERA BRUTAL) ======
+    async function fileToB64Compressed(file){
+      if (!file) return "";
+
+      // fallback si no es imagen
+      if (!/^image\//i.test(file.type || "")) {
+        return await new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(String(r.result).split(",")[1] || "");
+          r.onerror = reject;
+          r.readAsDataURL(file);
+        });
+      }
+
+      const imgURL = URL.createObjectURL(file);
+      try {
+        const img = await new Promise((resolve, reject) => {
+          const im = new Image();
+          im.onload = () => resolve(im);
+          im.onerror = reject;
+          im.src = imgURL;
+        });
+
+        const maxW = 1280;     // ✅ cambia si quieres (1024 más rápido aún)
+        const quality = 0.75;  // ✅ 0.65–0.8 recomendado
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+
+        if (w > maxW) {
+          const scale = maxW / w;
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        return dataUrl.split(",")[1] || "";
+      } finally {
+        URL.revokeObjectURL(imgURL);
+      }
     }
 
+    // ====== UPLOAD ======
     $("btnUpload").onclick = async () => {
       const vin = $("vinText").value.trim();
       const dateStr = ($("dateStr").value || todayYYYYMMDD());
@@ -385,22 +423,25 @@
 
       const files = [];
 
-      // slots normales (1 foto)
+      // slots normales
       const singleSlots = ["vin","corr_pre","corr_post","voltaje","scan_carro"];
       for (const slot of singleSlots){
         const f = selectedFilesBySlot[slot];
         if (f) {
-          const b64 = await fileToB64(f);
-          files.push({ slot, mimeType: f.type || "image/jpeg", b64 });
+          $("out").textContent = `Preparando ${slot}...\n`;
+          const b64 = await fileToB64Compressed(f);
+          files.push({ slot, mimeType: "image/jpeg", b64 }); // ya lo mandamos como jpeg
         }
       }
 
-      // compresión (hasta 4) -> comp_1..comp_4 (orden de selección)
-      for (let i = 0; i < Math.min(compFiles.length, 4); i++){
-        const f = compFiles[i];
+      // compresión visual -> comp_1..comp_4
+      for (let i = 0; i < 4; i++){
+        const f = compFilesVisual[i];
+        if (!f) continue;
         const slot = `comp_${i+1}`;
-        const b64 = await fileToB64(f);
-        files.push({ slot, mimeType: f.type || "image/jpeg", b64 });
+        $("out").textContent = `Preparando ${slot}...\n`;
+        const b64 = await fileToB64Compressed(f);
+        files.push({ slot, mimeType: "image/jpeg", b64 });
       }
 
       if (files.length === 0) {
@@ -415,7 +456,7 @@
 
       $("out").textContent = "✅ Subido.\nRefrescando estado...\n";
 
-      // limpiar selección
+      // limpiar selección normal
       for (const slot of Object.keys(selectedFilesBySlot)) {
         delete selectedFilesBySlot[slot];
         setPreview(slot, null);
@@ -429,7 +470,7 @@
       await refreshStatus();
     };
 
-    // ✅ botones: Tomar / Subir / Quitar (incluye comp)
+    // ====== BOTONES TOMAR/SUBIR/QUITAR ======
     document.addEventListener("click", (ev) => {
       const btn = ev.target.closest("button");
       if (!btn) return;
@@ -441,26 +482,24 @@
         if (slot === "comp") $("comp_cam").click();
         else $(`${slot}_cam`).click();
       }
-
       if (btn.getAttribute("data-pick") === "file") {
         if (slot === "comp") $("comp_file").click();
         else $(`${slot}_file`).click();
       }
-
       if (btn.getAttribute("data-clear") === "1") {
-        if (slot === "comp") {
-          clearComp();
-        } else {
+        if (slot === "comp") clearComp();
+        else {
           delete selectedFilesBySlot[slot];
           setPreview(slot, null);
-          const cam = $(`${slot}_cam`); const file = $(`${slot}_file`);
+          const cam = $(`${slot}_cam`);
+          const file = $(`${slot}_file`);
           if (cam) cam.value = "";
           if (file) file.value = "";
         }
       }
     });
 
-    // inputs normales (los que existen en HTML)
+    // ====== INPUTS NORMALES ======
     function wireInput(slot){
       const cam = $(`${slot}_cam`);
       const fil = $(`${slot}_file`);
@@ -476,15 +515,7 @@
       if (fil) fil.addEventListener("change", onPick);
       setPreview(slot, null);
     }
-
     ["vin","corr_pre","corr_post","voltaje","scan_carro"].forEach(wireInput);
-
-    // compresión inputs
-    (function wireComp(){
-      clearComp();
-      $("comp_cam").addEventListener("change", (e) => onPickComp(e.target.files));
-      $("comp_file").addEventListener("change", (e) => onPickComp(e.target.files));
-    })();
 
     // ===== Scanner (QR / Barra) =====
     let qr = null;
