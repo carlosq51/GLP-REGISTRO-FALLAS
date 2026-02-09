@@ -629,7 +629,7 @@
             $("scanMsg").textContent = "Detectado (QR): " + val;
             refreshStatus();
             // opcional: si quieres que se detenga al leer 1 vez:
-            // stopScan();
+            stopScan();
           },
           () => {}
         );
@@ -652,8 +652,7 @@
       // BARRAS: mejor un rectángulo HORIZONTAL (tipo “ventana”)
       const config = {
         fps: 12,
-        qrbox: { width: 320, height: 160 },
-        // ✅ SOLO BARRAS: incluye CODE_128 (el de tu etiqueta casi seguro)
+        qrbox: { width: 200, height: 360 }, // ✅ vertical (alto mayor)
         formatsToSupport: [
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.CODE_39,
@@ -678,7 +677,7 @@
             $("scanMsg").textContent = "Detectado (BARRAS): " + val;
             refreshStatus();
             // opcional: detener al primer match
-            // stopScan();
+            stopScan();
           },
           () => {}
         );
