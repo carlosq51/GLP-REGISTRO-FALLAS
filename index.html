@@ -90,77 +90,89 @@
       </div>
     </div>
 
-    <div class="slotCard" data-slot="comp_1">
-      <label>2) Compresión cilindro 1</label>
-
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" capture="environment" id="comp_1_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_1_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="comp_1">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="comp_1">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="comp_1">🧹 Quitar</button>
-      </div>
-
-      <div class="mini">
-        <div class="thumb" id="comp_1_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="comp_1_meta">Ningún archivo seleccionado.</div>
+    <div class="slotCard">
+      <label>2) Compresión (4 fotos)</label>
+    
+      <div class="grid" style="grid-template-columns: 1fr; gap:12px;">
+    
+        <!-- COMP 1 -->
+        <div class="box" style="margin:0; padding:10px;">
+          <div class="small"><b>Compresión 1</b></div>
+          <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_1_cam">
+          <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_1_file">
+    
+          <div class="slotActions">
+            <button class="btn3" type="button" data-pick="cam" data-slot="comp_1">📷 Tomar foto</button>
+            <button class="btn3" type="button" data-pick="file" data-slot="comp_1">🖼️ Subir archivo</button>
+            <button class="btn3" type="button" data-clear="1" data-slot="comp_1">🧹 Quitar</button>
+          </div>
+    
+          <div class="mini">
+            <div class="thumb" id="comp_1_previewBox"><span class="small">Sin foto</span></div>
+            <div class="miniInfo" id="comp_1_meta">Ningún archivo seleccionado.</div>
+          </div>
+        </div>
+    
+        <!-- COMP 2 -->
+        <div class="box" style="margin:0; padding:10px;">
+          <div class="small"><b>Compresión 2</b></div>
+          <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_2_cam">
+          <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_2_file">
+    
+          <div class="slotActions">
+            <button class="btn3" type="button" data-pick="cam" data-slot="comp_2">📷 Tomar foto</button>
+            <button class="btn3" type="button" data-pick="file" data-slot="comp_2">🖼️ Subir archivo</button>
+            <button class="btn3" type="button" data-clear="1" data-slot="comp_2">🧹 Quitar</button>
+          </div>
+    
+          <div class="mini">
+            <div class="thumb" id="comp_2_previewBox"><span class="small">Sin foto</span></div>
+            <div class="miniInfo" id="comp_2_meta">Ningún archivo seleccionado.</div>
+          </div>
+        </div>
+    
+        <!-- COMP 3 -->
+        <div class="box" style="margin:0; padding:10px;">
+          <div class="small"><b>Compresión 3</b></div>
+          <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_3_cam">
+          <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_3_file">
+    
+          <div class="slotActions">
+            <button class="btn3" type="button" data-pick="cam" data-slot="comp_3">📷 Tomar foto</button>
+            <button class="btn3" type="button" data-pick="file" data-slot="comp_3">🖼️ Subir archivo</button>
+            <button class="btn3" type="button" data-clear="1" data-slot="comp_3">🧹 Quitar</button>
+          </div>
+    
+          <div class="mini">
+            <div class="thumb" id="comp_3_previewBox"><span class="small">Sin foto</span></div>
+            <div class="miniInfo" id="comp_3_meta">Ningún archivo seleccionado.</div>
+          </div>
+        </div>
+    
+        <!-- COMP 4 -->
+        <div class="box" style="margin:0; padding:10px;">
+          <div class="small"><b>Compresión 4</b></div>
+          <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_4_cam">
+          <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_4_file">
+    
+          <div class="slotActions">
+            <button class="btn3" type="button" data-pick="cam" data-slot="comp_4">📷 Tomar foto</button>
+            <button class="btn3" type="button" data-pick="file" data-slot="comp_4">🖼️ Subir archivo</button>
+            <button class="btn3" type="button" data-clear="1" data-slot="comp_4">🧹 Quitar</button>
+          </div>
+    
+          <div class="mini">
+            <div class="thumb" id="comp_4_previewBox"><span class="small">Sin foto</span></div>
+            <div class="miniInfo" id="comp_4_meta">Ningún archivo seleccionado.</div>
+          </div>
+        </div>
+    
       </div>
     </div>
 
-    <div class="slotCard" data-slot="comp_2">
-      <label>3) Compresión cilindro 2</label>
 
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" capture="environment" id="comp_2_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_2_file">
 
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="comp_2">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="comp_2">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="comp_2">🧹 Quitar</button>
-      </div>
 
-      <div class="mini">
-        <div class="thumb" id="comp_2_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="comp_2_meta">Ningún archivo seleccionado.</div>
-      </div>
-    </div>
-
-    <div class="slotCard" data-slot="comp_3">
-      <label>4) Compresión cilindro 3</label>
-
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" capture="environment" id="comp_3_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_3_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="comp_3">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="comp_3">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="comp_3">🧹 Quitar</button>
-      </div>
-
-      <div class="mini">
-        <div class="thumb" id="comp_3_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="comp_3_meta">Ningún archivo seleccionado.</div>
-      </div>
-    </div>
-
-    <div class="slotCard" data-slot="comp_4">
-      <label>5) Compresión cilindro 4</label>
-
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" capture="environment" id="comp_4_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_4_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="comp_4">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="comp_4">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="comp_4">🧹 Quitar</button>
-      </div>
-
-      <div class="mini">
-        <div class="thumb" id="comp_4_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="comp_4_meta">Ningún archivo seleccionado.</div>
-      </div>
-    </div>
 
     <div class="slotCard" data-slot="corr_pre">
       <label>6) Corriente antes</label>
@@ -268,7 +280,7 @@
       corr_post: "Corriente después",
       voltaje: "Voltaje",
       scan_carro: "Scan del carro",
-    };
+    };;
 
     // guardamos el archivo elegido por slot (viene de cam o file)
     const selectedFilesBySlot = {};
@@ -319,15 +331,28 @@
       // liberar luego (pero mantenemos un poquito para no parpadear)
       setTimeout(() => URL.revokeObjectURL(url), 15000);
     }
-
+    
     function renderStatus(j){
-      let missing = [];
       let s = "";
       s += `VIN: ${j.vin}\n`;
       s += `Fecha: ${j.dateStr}\n`;
       s += `Carpeta: ${j.monthFolderName} / ${j.carFolderName} / REGISTRO\n\n`;
-
-      for (const slot of slots){
+    
+      // --- Agrupar compresión ---
+      const compSlots = ["comp_1","comp_2","comp_3","comp_4"];
+      const compOkCount = compSlots.filter(sl => j.status && j.status[sl]).length;
+      const compMissing = compSlots.filter(sl => !(j.status && j.status[sl])).map(sl => slotLabels[sl]);
+    
+      s += `${compOkCount === 4 ? "✅" : "❌"} Compresión (${compOkCount}/4)\n`;
+      if (compMissing.length) {
+        s += `   Faltan: ${compMissing.join(", ")}\n`;
+      }
+    
+      // --- Resto de slots (sin repetir comp_1..4) ---
+      const otherSlots = ["vin","corr_pre","corr_post","voltaje","scan_carro"];
+      let missing = [];
+    
+      for (const slot of otherSlots){
         const ok = j.status && j.status[slot];
         const p = j.previews && j.previews[slot];
         s += `${ok ? "✅" : "❌"} ${slotLabels[slot]}`;
@@ -335,8 +360,11 @@
         s += "\n";
         if (!ok) missing.push(slotLabels[slot]);
       }
-
-      s += `\nFaltantes (${missing.length}/9):\n- ` + missing.join("\n- ");
+    
+      // faltantes incluye también compresión
+      const allMissing = [...(compMissing.length ? compMissing : []), ...missing];
+      s += `\nFaltantes (${allMissing.length}/9):\n- ` + (allMissing.length ? allMissing.join("\n- ") : "Ninguno 🎉");
+    
       $("out").textContent = s;
     }
 
