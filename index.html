@@ -265,24 +265,60 @@
       setTimeout(() => URL.revokeObjectURL(url), 15000);
     }
 
-    function setRemotePreview(slot, imgUrl){
+    function setRemotePreview(slot, p){
       const box = $(`${slot}_previewBox`);
       const meta = $(`${slot}_meta`);
+      if (!p) return;
     
-      if (!imgUrl){
-        // si no hay remoto, no fuerces nada
-        return;
-      }
+      const src1 = p.thumbUrl || "";
+      const src2 = p.imgUrl || "";
     
       meta.textContent = "📡 Ya existe en Drive (preview).";
-      box.innerHTML = `<img alt="drive preview" src="${imgUrl}" loading="lazy" referrerpolicy="no-referrer">`;
-    }
     
-    function setRemoteCompPreview(idx1to4, imgUrl){
-      const box = $(`comp_p${idx1to4}`);
-      if (!box || !imgUrl) return;
-      box.innerHTML = `<img alt="drive preview" src="${imgUrl}" loading="lazy" referrerpolicy="no-referrer">`;
+      box.innerHTML = `
+        <img id="${slot}_img"
+             alt="drive preview"
+             src="${src1 || src2}"
+             loading="lazy"
+             referrerpolicy="no-referrer"
+             style="width:100%;height:100%;object-fit:cover;display:block;">
+      `;
+    
+      const im = document.getElementById(`${slot}_img`);
+      if (!im) return;
+    
+      // si falla thumb -> intenta imgUrl
+      im.onerror = () => {
+        if (src2 && im.src !== src2) im.src = src2;
+        else box.innerHTML = `<span class="small">No se pudo cargar preview</span>`;
+      };
     }
+
+    function setRemoteCompPreview(idx1to4, p){
+      const box = $(`comp_p${idx1to4}`);
+      if (!box || !p) return;
+    
+      const src1 = p.thumbUrl || "";
+      const src2 = p.imgUrl || "";
+    
+      box.innerHTML = `
+        <img id="comp_img_${idx1to4}"
+             alt="drive preview"
+             src="${src1 || src2}"
+             loading="lazy"
+             referrerpolicy="no-referrer"
+             style="width:100%;height:100%;object-fit:cover;display:block;">
+      `;
+    
+      const im = document.getElementById(`comp_img_${idx1to4}`);
+      if (!im) return;
+    
+      im.onerror = () => {
+        if (src2 && im.src !== src2) im.src = src2;
+        else box.innerHTML = `<span class="small">${idx1to4}</span>`;
+      };
+    }
+
 
 
     // ====== COMPRESIÓN (APILAR AL REVÉS) ======
@@ -380,26 +416,30 @@
       const vin = $("vinText").value.trim();
       const dateStr = ($("dateStr").value || todayYYYYMMDD());
       if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
+    
       const j = await callAPS({ action: "getStatus", vin, dateStr });
       if (!j.ok) { $("out").textContent = "❌ getStatus: " + j.error; return; }
+    
+      // 1) pinta el texto del estado (checks, links, etc.)
       renderStatus(j);
-
-      // ====== pintar previews desde Drive (si existen) ======
+    
+      // 2) ✅ pinta previews desde Drive (si existen)
       if (j && j.previews) {
-        // slots normales
+        // slots normales (1 foto)
         ["vin","corr_pre","corr_post","voltaje","scan_carro"].forEach(slot => {
           const p = j.previews[slot];
-          if (p && p.imgUrl) setRemotePreview(slot, p.imgUrl);
+          if (p) setRemotePreview(slot, p);
         });
-      
-        // compresión (4)
+    
+        // compresión (4 fotos)
         ["comp_1","comp_2","comp_3","comp_4"].forEach((slot, i) => {
           const p = j.previews[slot];
-          if (p && p.imgUrl) setRemoteCompPreview(i+1, p.imgUrl);
+          if (p) setRemoteCompPreview(i + 1, p); // i+1 => comp_p1..comp_p4
         });
       }
-
     }
+
+    
     $("btnRefresh").onclick = refreshStatus;
     $("vinText").addEventListener("change", refreshStatus);
     $("dateStr").addEventListener("change", refreshStatus);
