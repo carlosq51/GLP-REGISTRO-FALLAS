@@ -265,6 +265,26 @@
       setTimeout(() => URL.revokeObjectURL(url), 15000);
     }
 
+    function setRemotePreview(slot, imgUrl){
+      const box = $(`${slot}_previewBox`);
+      const meta = $(`${slot}_meta`);
+    
+      if (!imgUrl){
+        // si no hay remoto, no fuerces nada
+        return;
+      }
+    
+      meta.textContent = "📡 Ya existe en Drive (preview).";
+      box.innerHTML = `<img alt="drive preview" src="${imgUrl}" loading="lazy" referrerpolicy="no-referrer">`;
+    }
+    
+    function setRemoteCompPreview(idx1to4, imgUrl){
+      const box = $(`comp_p${idx1to4}`);
+      if (!box || !imgUrl) return;
+      box.innerHTML = `<img alt="drive preview" src="${imgUrl}" loading="lazy" referrerpolicy="no-referrer">`;
+    }
+
+
     // ====== COMPRESIÓN (APILAR AL REVÉS) ======
     function clearComp(){
       compFilesVisual = [null, null, null, null];
@@ -363,6 +383,22 @@
       const j = await callAPS({ action: "getStatus", vin, dateStr });
       if (!j.ok) { $("out").textContent = "❌ getStatus: " + j.error; return; }
       renderStatus(j);
+
+      // ====== pintar previews desde Drive (si existen) ======
+      if (j && j.previews) {
+        // slots normales
+        ["vin","corr_pre","corr_post","voltaje","scan_carro"].forEach(slot => {
+          const p = j.previews[slot];
+          if (p && p.imgUrl) setRemotePreview(slot, p.imgUrl);
+        });
+      
+        // compresión (4)
+        ["comp_1","comp_2","comp_3","comp_4"].forEach((slot, i) => {
+          const p = j.previews[slot];
+          if (p && p.imgUrl) setRemoteCompPreview(i+1, p.imgUrl);
+        });
+      }
+
     }
     $("btnRefresh").onclick = refreshStatus;
     $("vinText").addEventListener("change", refreshStatus);
