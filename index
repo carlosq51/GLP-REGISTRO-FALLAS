@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Uploader GLP</title>
+</head>
+<body>
+  <h2>Subida por VIN</h2>
+
+  <button id="btnScan">Escanear QR / Barra</button>
+  <div id="qrBox" style="display:none; max-width:420px; margin:10px 0;">
+    <div id="qrReader"></div>
+    <button id="btnStop">Detener</button>
+    <p id="scanMsg"></p>
+  </div>
+
+  <label>VIN:</label>
+  <input id="vin" placeholder="VIN..." />
+  <button id="btnUseToday">Poner fecha hoy</button>
+  <div>Fecha (YYYY-MM-DD): <input id="dateStr" placeholder="2026-02-09"></div>
+
+  <h3>Fotos (9)</h3>
+
+  <div>
+    <p>1) VIN mal digitado</p>
+    <input type="file" accept="image/*" capture="environment" id="vin_error">
+  </div>
+
+  <div>
+    <p>2-5) Compresión cilindros 1-4</p>
+    <input type="file" accept="image/*" capture="environment" id="comp_1">
+    <input type="file" accept="image/*" capture="environment" id="comp_2">
+    <input type="file" accept="image/*" capture="environment" id="comp_3">
+    <input type="file" accept="image/*" capture="environment" id="comp_4">
+  </div>
+
+  <div>
+    <p>6-7) Corriente antes / después</p>
+    <input type="file" accept="image/*" capture="environment" id="corr_pre">
+    <input type="file" accept="image/*" capture="environment" id="corr_post">
+  </div>
+
+  <div>
+    <p>8) Voltaje</p>
+    <input type="file" accept="image/*" capture="environment" id="voltaje">
+  </div>
+
+  <div>
+    <p>9) Scan del carro</p>
+    <input type="file" accept="image/*" capture="environment" id="scan_carro">
+  </div>
+
+  <br/>
+  <button id="btnUpload">SUBIR A DRIVE</button>
+  <pre id="out"></pre>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script>
+    const APS_URL = "PEGA_AQUI_TU_URL_DEL_DEPLOY"; // Apps Script WebApp URL
+
+    const $ = (id) => document.getElementById(id);
+
+    function todayYYYYMMDD() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+
+    $("btnUseToday").onclick = () => $("dateStr").value = todayYYYYMMDD();
+
+    // ====== Scanner ======
+    let qr = null;
+    $("btnScan").onclick = async () => {
+      $("qrBox").style.display = "block";
+      $("scanMsg").textContent = "";
+
+      if (!qr) qr = new Html5Qrcode("qrReader");
+
+      const config = { fps: 10, qrbox: { width: 280, height: 180 } };
+
+      try {
+        await qr.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => {
+            $("vin").value = (decodedText || "").trim();
+            $("scanMsg").textContent = "Detectado: " + decodedText;
+          },
+          (err) => {}
+        );
+      } catch (e) {
+        $("scanMsg").textContent = "Error cámara: " + e;
+      }
+    };
+
+    $("btnStop").onclick = async () => {
+      if (qr) {
+        try { await qr.stop(); } catch {}
+      }
+      $("qrBox").style.display = "none";
+    };
+
+    // ====== Upload ======
+    const slots = [
+      "vin_error",
+      "comp_1","comp_2","comp_3","comp_4",
+      "corr_pre","corr_post",
+      "voltaje",
+      "scan_carro"
+    ];
+
+    function fileToB64(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const dataUrl = r.result; // "data:image/jpeg;base64,...."
+          const b64 = String(dataUrl).split(",")[1] || "";
+          resolve(b64);
+        };
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    $("btnUpload").onclick = async () => {
+      $("out").textContent = "Preparando...\n";
+
+      const vin = $("vin").value.trim();
+      const dateStr = ($("dateStr").value.trim() || todayYYYYMMDD());
+
+      if (!vin) {
+        $("out").textContent = "❌ Falta VIN.\n";
+        return;
+      }
+
+      // Recolectar archivos (solo los que existan)
+      const files = [];
+      for (const slot of slots) {
+        const input = $(slot);
+        const f = input && input.files && input.files[0];
+        if (f) {
+          const b64 = await fileToB64(f);
+          files.push({
+            slot,
+            name: `${slot}.jpg`,
+            mimeType: f.type || "image/jpeg",
+            b64
+          });
+        }
+      }
+
+      // Si quieres obligar que estén las 9 sí o sí:
+      // if (files.length !== 9) { ... }
+
+      const payload = { vin, dateStr, files };
+
+      $("out").textContent += `Subiendo ${files.length} archivo(s)...\n`;
+
+      try {
+        const res = await fetch(APS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const j = await res.json();
+        $("out").textContent += JSON.stringify(j, null, 2);
+      } catch (e) {
+        $("out").textContent += "\n❌ Error: " + e;
+      }
+    };
+  </script>
+</body>
+</html>
