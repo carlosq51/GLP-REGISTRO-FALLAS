@@ -39,13 +39,19 @@
 
   <div class="box">
     <div class="row">
-      <button class="btn" id="btnScan">Escanear QR / Barra</button>
+      <!-- ✅ NUEVO: botones separados -->
+      <button class="btn" id="btnScanQR">Escanear SOLO QR</button>
+      <button class="btn" id="btnScanBAR">Escanear SOLO BARRAS</button>
       <button class="btn3" id="btnStop" style="display:none;">Detener</button>
       <div class="small" id="scanMsg"></div>
     </div>
 
     <div id="qrBox" style="display:none; margin-top:10px;">
+      <div class="small" id="scanMode" style="margin-bottom:8px;"></div>
       <div id="qrReader"></div>
+      <div class="small" style="margin-top:8px;">
+        Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
+      </div>
     </div>
 
     <div class="row">
@@ -92,7 +98,6 @@
     <div class="slotCard" data-slot="comp">
       <label>2) Compresión (toma 4 fotos)</label>
 
-      <!-- ✅ SIN multiple: una por una y se apila como quieres -->
       <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
       <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file">
 
@@ -216,14 +221,9 @@
       scan_carro: "Scan del carro",
     };
 
-    // slots backend
     const slots = ["vin","comp_1","comp_2","comp_3","comp_4","corr_pre","corr_post","voltaje","scan_carro"];
-
-    // 1 foto por slot normal
     const selectedFilesBySlot = {};
 
-    // compresión VISUAL [1..4] => guardamos un array de 4 posiciones (puede tener null)
-    // regla: cada foto nueva entra en el 4, y empuja 4->3->2->1
     let compFilesVisual = [null, null, null, null];
 
     function todayYYYYMMDD() {
@@ -269,12 +269,12 @@
       const box = $(`${slot}_previewBox`);
       const meta = $(`${slot}_meta`);
       if (!p) return;
-    
+
       const src1 = p.thumbUrl || "";
       const src2 = p.imgUrl || "";
-    
+
       meta.textContent = "📡 Ya existe en Drive (preview).";
-    
+
       box.innerHTML = `
         <img id="${slot}_img"
              alt="drive preview"
@@ -283,11 +283,10 @@
              referrerpolicy="no-referrer"
              style="width:100%;height:100%;object-fit:cover;display:block;">
       `;
-    
+
       const im = document.getElementById(`${slot}_img`);
       if (!im) return;
-    
-      // si falla thumb -> intenta imgUrl
+
       im.onerror = () => {
         if (src2 && im.src !== src2) im.src = src2;
         else box.innerHTML = `<span class="small">No se pudo cargar preview</span>`;
@@ -297,10 +296,10 @@
     function setRemoteCompPreview(idx1to4, p){
       const box = $(`comp_p${idx1to4}`);
       if (!box || !p) return;
-    
+
       const src1 = p.thumbUrl || "";
       const src2 = p.imgUrl || "";
-    
+
       box.innerHTML = `
         <img id="comp_img_${idx1to4}"
              alt="drive preview"
@@ -309,19 +308,17 @@
              referrerpolicy="no-referrer"
              style="width:100%;height:100%;object-fit:cover;display:block;">
       `;
-    
+
       const im = document.getElementById(`comp_img_${idx1to4}`);
       if (!im) return;
-    
+
       im.onerror = () => {
         if (src2 && im.src !== src2) im.src = src2;
         else box.innerHTML = `<span class="small">${idx1to4}</span>`;
       };
     }
 
-
-
-    // ====== COMPRESIÓN (APILAR AL REVÉS) ======
+    // ====== COMPRESIÓN ======
     function clearComp(){
       compFilesVisual = [null, null, null, null];
       ["comp_p1","comp_p2","comp_p3","comp_p4"].forEach((id, idx) => {
@@ -355,10 +352,8 @@
       }
     }
 
-    // ✅ cada foto nueva entra al slot 4, empuja 4->3->2->1 (y si hay 5, se pierde la 1)
     function addCompOne(file){
       if (!file) return;
-      // desplazar: 1<-2<-3<-4 , 4<-nuevo
       compFilesVisual[0] = compFilesVisual[1];
       compFilesVisual[1] = compFilesVisual[2];
       compFilesVisual[2] = compFilesVisual[3];
@@ -370,12 +365,10 @@
       const f = (fileList && fileList[0]) ? fileList[0] : null;
       if (!f) return;
       addCompOne(f);
-      // reset input para poder tomar otra foto “igual” sin problemas
       $("comp_cam").value = "";
       $("comp_file").value = "";
     }
 
-    // ====== COMPRESIÓN: inputs ======
     (function wireComp(){
       clearComp();
       $("comp_cam").addEventListener("change", (e) => onPickCompOne(e.target.files));
@@ -416,39 +409,33 @@
       const vin = $("vinText").value.trim();
       const dateStr = ($("dateStr").value || todayYYYYMMDD());
       if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
-    
+
       const j = await callAPS({ action: "getStatus", vin, dateStr });
       if (!j.ok) { $("out").textContent = "❌ getStatus: " + j.error; return; }
-    
-      // 1) pinta el texto del estado (checks, links, etc.)
+
       renderStatus(j);
-    
-      // 2) ✅ pinta previews desde Drive (si existen)
+
       if (j && j.previews) {
-        // slots normales (1 foto)
         ["vin","corr_pre","corr_post","voltaje","scan_carro"].forEach(slot => {
           const p = j.previews[slot];
           if (p) setRemotePreview(slot, p);
         });
-    
-        // compresión (4 fotos)
+
         ["comp_1","comp_2","comp_3","comp_4"].forEach((slot, i) => {
           const p = j.previews[slot];
-          if (p) setRemoteCompPreview(i + 1, p); // i+1 => comp_p1..comp_p4
+          if (p) setRemoteCompPreview(i + 1, p);
         });
       }
     }
 
-    
     $("btnRefresh").onclick = refreshStatus;
     $("vinText").addEventListener("change", refreshStatus);
     $("dateStr").addEventListener("change", refreshStatus);
 
-    // ====== COMPRESIÓN/REDIMENSION ANTES DE BASE64 (ACELERA BRUTAL) ======
+    // ====== COMPRESIÓN/REDIMENSION ANTES DE BASE64 ======
     async function fileToB64Compressed(file){
       if (!file) return "";
 
-      // fallback si no es imagen
       if (!/^image\//i.test(file.type || "")) {
         return await new Promise((resolve, reject) => {
           const r = new FileReader();
@@ -467,8 +454,8 @@
           im.src = imgURL;
         });
 
-        const maxW = 1280;     // ✅ cambia si quieres (1024 más rápido aún)
-        const quality = 0.75;  // ✅ 0.65–0.8 recomendado
+        const maxW = 1280;
+        const quality = 0.75;
         let w = img.naturalWidth || img.width;
         let h = img.naturalHeight || img.height;
 
@@ -499,18 +486,16 @@
 
       const files = [];
 
-      // slots normales
       const singleSlots = ["vin","corr_pre","corr_post","voltaje","scan_carro"];
       for (const slot of singleSlots){
         const f = selectedFilesBySlot[slot];
         if (f) {
           $("out").textContent = `Preparando ${slot}...\n`;
           const b64 = await fileToB64Compressed(f);
-          files.push({ slot, mimeType: "image/jpeg", b64 }); // ya lo mandamos como jpeg
+          files.push({ slot, mimeType: "image/jpeg", b64 });
         }
       }
 
-      // compresión visual -> comp_1..comp_4
       for (let i = 0; i < 4; i++){
         const f = compFilesVisual[i];
         if (!f) continue;
@@ -532,7 +517,6 @@
 
       $("out").textContent = "✅ Subido.\nRefrescando estado...\n";
 
-      // limpiar selección normal
       for (const slot of Object.keys(selectedFilesBySlot)) {
         delete selectedFilesBySlot[slot];
         setPreview(slot, null);
@@ -593,41 +577,121 @@
     }
     ["vin","corr_pre","corr_post","voltaje","scan_carro"].forEach(wireInput);
 
-    // ===== Scanner (QR / Barra) =====
+    // =========================================================
+    // ✅ SCANNER SEPARADO: SOLO QR  /  SOLO BARRAS
+    // =========================================================
     let qr = null;
+    let scanning = false;
 
-    async function startScan(){
-      $("qrBox").style.display = "block";
-      $("btnStop").style.display = "inline-block";
-      $("scanMsg").textContent = "";
-
-      if (!qr) qr = new Html5Qrcode("qrReader");
-      const config = { fps: 10, qrbox: { width: 280, height: 180 } };
-
-      try {
-        await qr.start(
-          { facingMode: "environment" },
-          config,
-          (decodedText) => {
-            $("vinText").value = (decodedText || "").trim();
-            $("scanMsg").textContent = "Detectado: " + decodedText;
-            refreshStatus();
-          },
-          () => {}
-        );
-      } catch (e) {
-        $("scanMsg").textContent = "Error cámara: " + e;
-      }
+    // Normaliza el texto leído (sirve para QR o barras)
+    function normalizeScanText(t){
+      return String(t || "")
+        .replace(/\s+/g, "")      // quita espacios y saltos
+        .trim();
     }
 
     async function stopScan(){
       if (qr) { try { await qr.stop(); } catch {} }
+      scanning = false;
       $("qrBox").style.display = "none";
       $("btnStop").style.display = "none";
+      $("scanMode").textContent = "";
     }
 
-    $("btnScan").onclick = startScan;
+    async function startScanQR(){
+      // si estaba escaneando en otro modo, detenemos primero
+      await stopScan();
+
+      $("qrBox").style.display = "block";
+      $("btnStop").style.display = "inline-block";
+      $("scanMsg").textContent = "";
+      $("scanMode").textContent = "Modo: SOLO QR";
+
+      if (!qr) qr = new Html5Qrcode("qrReader");
+
+      // QR: el rectángulo puede ser más cuadrado
+      const config = {
+        fps: 12,
+        qrbox: { width: 280, height: 280 },
+        // ✅ SOLO QR:
+        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
+      };
+
+      try {
+        scanning = true;
+        await qr.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => {
+            const val = normalizeScanText(decodedText);
+            if (!val) return;
+            $("vinText").value = val;
+            $("scanMsg").textContent = "Detectado (QR): " + val;
+            refreshStatus();
+            // opcional: si quieres que se detenga al leer 1 vez:
+            // stopScan();
+          },
+          () => {}
+        );
+      } catch (e) {
+        scanning = false;
+        $("scanMsg").textContent = "Error cámara (QR): " + e;
+      }
+    }
+
+    async function startScanBAR(){
+      await stopScan();
+
+      $("qrBox").style.display = "block";
+      $("btnStop").style.display = "inline-block";
+      $("scanMsg").textContent = "";
+      $("scanMode").textContent = "Modo: SOLO BARRAS (CODE_128 y otros)";
+
+      if (!qr) qr = new Html5Qrcode("qrReader");
+
+      // BARRAS: mejor un rectángulo HORIZONTAL (tipo “ventana”)
+      const config = {
+        fps: 12,
+        qrbox: { width: 320, height: 160 },
+        // ✅ SOLO BARRAS: incluye CODE_128 (el de tu etiqueta casi seguro)
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.ITF,
+          Html5QrcodeSupportedFormats.CODABAR
+        ],
+      };
+
+      try {
+        scanning = true;
+        await qr.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => {
+            const val = normalizeScanText(decodedText);
+            if (!val) return;
+            $("vinText").value = val;
+            $("scanMsg").textContent = "Detectado (BARRAS): " + val;
+            refreshStatus();
+            // opcional: detener al primer match
+            // stopScan();
+          },
+          () => {}
+        );
+      } catch (e) {
+        scanning = false;
+        $("scanMsg").textContent = "Error cámara (BARRAS): " + e;
+      }
+    }
+
+    $("btnScanQR").onclick = startScanQR;
+    $("btnScanBAR").onclick = startScanBAR;
     $("btnStop").onclick = stopScan;
+
   </script>
 
 </body>
