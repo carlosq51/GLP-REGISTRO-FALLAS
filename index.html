@@ -2,79 +2,231 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
   <title>Uploader GLP</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; padding: 16px; max-width: 760px; margin: 0 auto; }
+    .row { margin: 10px 0; }
+    .box { border: 1px solid #ddd; padding: 12px; border-radius: 10px; margin: 10px 0; }
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    input[type="text"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #bbb; border-radius: 10px; }
+    button { padding: 10px 14px; border: 0; border-radius: 10px; cursor: pointer; }
+    .btn { background: #0b5fff; color: white; }
+    .btn2 { background: #111; color: white; }
+    .btn3 { background: #eee; color: #111; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .small { color: #555; font-size: 12px; }
+    .status { white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 10px; }
+    #qrReader { width: 100%; }
+  </style>
 </head>
 <body>
-  <h2>Subida por VIN</h2>
 
-  <button id="btnScan">Escanear QR / Barra</button>
-  <div id="qrBox" style="display:none; max-width:420px; margin:10px 0;">
-    <div id="qrReader"></div>
-    <button id="btnStop">Detener</button>
-    <p id="scanMsg"></p>
+  <h2>Subida por VIN (Colaborativo)</h2>
+
+  <div class="box">
+    <div class="row">
+      <button class="btn" id="btnScan">Escanear QR / Barra</button>
+      <button class="btn3" id="btnStop" style="display:none;">Detener</button>
+      <div class="small" id="scanMsg"></div>
+    </div>
+
+    <div id="qrBox" style="display:none; margin-top:10px;">
+      <div id="qrReader"></div>
+    </div>
+
+    <div class="row">
+      <label>VIN (texto)</label>
+      <input id="vinText" type="text" placeholder="Escanea o escribe VIN..." />
+    </div>
+
+    <div class="row">
+      <label>Fecha (YYYY-MM-DD)</label>
+      <input id="dateStr" type="date" />
+      <div class="small">Si no eliges fecha, usa la de hoy.</div>
+    </div>
+
+    <div class="row">
+      <button class="btn3" id="btnRefresh">Refrescar estado</button>
+    </div>
   </div>
 
-  <label>VIN:</label>
-  <input id="vin" placeholder="VIN..." />
-  <button id="btnUseToday">Poner fecha hoy</button>
-  <div>Fecha (YYYY-MM-DD): <input id="dateStr" placeholder="2026-02-09"></div>
+  <h3>Fotos (9) — se guardan en Drive</h3>
 
-  <h3>Fotos (9)</h3>
+  <div class="box grid">
+    <div>
+      <label>1) Foto del VIN</label>
+      <input type="file" accept="image/*" capture="environment" id="vin">
+    </div>
 
-  <div>
-    <p>1) VIN mal digitado</p>
-    <input type="file" accept="image/*" capture="environment" id="vin_error">
+    <div>
+      <label>2) Compresión cilindro 1</label>
+      <input type="file" accept="image/*" capture="environment" id="comp_1">
+    </div>
+    <div>
+      <label>3) Compresión cilindro 2</label>
+      <input type="file" accept="image/*" capture="environment" id="comp_2">
+    </div>
+    <div>
+      <label>4) Compresión cilindro 3</label>
+      <input type="file" accept="image/*" capture="environment" id="comp_3">
+    </div>
+    <div>
+      <label>5) Compresión cilindro 4</label>
+      <input type="file" accept="image/*" capture="environment" id="comp_4">
+    </div>
+
+    <div>
+      <label>6) Corriente antes</label>
+      <input type="file" accept="image/*" capture="environment" id="corr_pre">
+    </div>
+    <div>
+      <label>7) Corriente después</label>
+      <input type="file" accept="image/*" capture="environment" id="corr_post">
+    </div>
+
+    <div>
+      <label>8) Voltaje</label>
+      <input type="file" accept="image/*" capture="environment" id="voltaje">
+    </div>
+
+    <div>
+      <label>9) Scan del carro</label>
+      <input type="file" accept="image/*" capture="environment" id="scan_carro">
+    </div>
   </div>
 
-  <div>
-    <p>2-5) Compresión cilindros 1-4</p>
-    <input type="file" accept="image/*" capture="environment" id="comp_1">
-    <input type="file" accept="image/*" capture="environment" id="comp_2">
-    <input type="file" accept="image/*" capture="environment" id="comp_3">
-    <input type="file" accept="image/*" capture="environment" id="comp_4">
+  <div class="row">
+    <button class="btn2" id="btnUpload">SUBIR 9 FOTOS A DRIVE</button>
   </div>
 
-  <div>
-    <p>6-7) Corriente antes / después</p>
-    <input type="file" accept="image/*" capture="environment" id="corr_pre">
-    <input type="file" accept="image/*" capture="environment" id="corr_post">
-  </div>
-
-  <div>
-    <p>8) Voltaje</p>
-    <input type="file" accept="image/*" capture="environment" id="voltaje">
-  </div>
-
-  <div>
-    <p>9) Scan del carro</p>
-    <input type="file" accept="image/*" capture="environment" id="scan_carro">
-  </div>
-
-  <br/>
-  <button id="btnUpload">SUBIR A DRIVE</button>
-  <pre id="out"></pre>
+  <h3>Estado colaborativo</h3>
+  <div id="out" class="status">Listo.</div>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
-    const APS_URL = "PEGA_AQUI_TU_URL_DEL_DEPLOY"; // Apps Script WebApp URL
+    // ✅ PEGA TU URL DEL APPS SCRIPT (la que termina en /exec)
+    const APS_URL = "https://script.google.com/macros/s/AKfycbw8WdoYVKGU9ztmHv81c-GzcUxpaCdMn5mvk5XgqJQ7kicbivdr6DFRIgTEOq_nIUMV/exec";
 
     const $ = (id) => document.getElementById(id);
+
+    const slots = [
+      "vin",
+      "comp_1","comp_2","comp_3","comp_4",
+      "corr_pre","corr_post",
+      "voltaje",
+      "scan_carro"
+    ];
+
+    const slotLabels = {
+      vin: "Foto del VIN",
+      comp_1: "Compresión 1",
+      comp_2: "Compresión 2",
+      comp_3: "Compresión 3",
+      comp_4: "Compresión 4",
+      corr_pre: "Corriente antes",
+      corr_post: "Corriente después",
+      voltaje: "Voltaje",
+      scan_carro: "Scan del carro",
+    };
 
     function todayYYYYMMDD() {
       const d = new Date();
       const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,'0');
+      const m = String(d.getMonth() + 1).padStart(2,'0');
       const day = String(d.getDate()).padStart(2,'0');
       return `${y}-${m}-${day}`;
     }
 
-    $("btnUseToday").onclick = () => $("dateStr").value = todayYYYYMMDD();
+    // date input: set default to today
+    (function initDate(){
+      $("dateStr").value = todayYYYYMMDD();
+    })();
 
-    // ====== Scanner ======
+    async function callAPS(payload){
+      const res = await fetch(APS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      return res.json();
+    }
+
+    function renderStatus(j){
+      let s = "";
+      s += `VIN: ${j.vin}\n`;
+      s += `Fecha: ${j.dateStr}\n`;
+      s += `Carpeta: ${j.monthFolderName} / ${j.carFolderName} / REGISTRO\n\n`;
+
+      for (const slot of slots){
+        const ok = j.status && j.status[slot];
+        const p = j.previews && j.previews[slot];
+        s += `${ok ? "✅" : "❌"} ${slotLabels[slot]}`;
+        if (p && p.url) s += `  (ver: ${p.url})`;
+        s += "\n";
+      }
+      $("out").textContent = s;
+    }
+
+    async function refreshStatus(){
+      const vin = $("vinText").value.trim();
+      const dateStr = ($("dateStr").value || todayYYYYMMDD());
+      if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
+
+      const j = await callAPS({ action: "getStatus", vin, dateStr });
+      if (!j.ok) { $("out").textContent = "❌ getStatus: " + j.error; return; }
+      renderStatus(j);
+    }
+
+    $("btnRefresh").onclick = refreshStatus;
+    $("vinText").addEventListener("change", refreshStatus);
+    $("dateStr").addEventListener("change", refreshStatus);
+
+    function fileToB64(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const b64 = String(r.result).split(",")[1] || "";
+          resolve(b64);
+        };
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    $("btnUpload").onclick = async () => {
+      const vin = $("vinText").value.trim();
+      const dateStr = ($("dateStr").value || todayYYYYMMDD());
+
+      if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
+
+      // recolectar 9 fotos sí o sí
+      const files = [];
+      for (const slot of slots){
+        const input = $(slot);
+        const f = input && input.files && input.files[0];
+        if (!f) {
+          $("out").textContent = `❌ Falta la foto: ${slotLabels[slot]} (${slot})`;
+          return;
+        }
+        const b64 = await fileToB64(f);
+        files.push({ slot, mimeType: f.type || "image/jpeg", b64 });
+      }
+
+      $("out").textContent = "Subiendo 9 fotos...\n";
+      const j = await callAPS({ action: "uploadFiles", vin, dateStr, files });
+      if (!j.ok) { $("out").textContent = "❌ uploadFiles: " + j.error; return; }
+
+      $("out").textContent = "✅ Subido.\nRefrescando estado...\n";
+      await refreshStatus();
+    };
+
+    // ===== Scanner (QR / Barra) =====
     let qr = null;
-    $("btnScan").onclick = async () => {
+
+    async function startScan(){
       $("qrBox").style.display = "block";
+      $("btnStop").style.display = "inline-block";
       $("scanMsg").textContent = "";
 
       if (!qr) qr = new Html5Qrcode("qrReader");
@@ -86,91 +238,26 @@
           { facingMode: "environment" },
           config,
           (decodedText) => {
-            $("vin").value = (decodedText || "").trim();
+            $("vinText").value = (decodedText || "").trim();
             $("scanMsg").textContent = "Detectado: " + decodedText;
+            refreshStatus();
           },
-          (err) => {}
+          () => {}
         );
       } catch (e) {
         $("scanMsg").textContent = "Error cámara: " + e;
       }
-    };
-
-    $("btnStop").onclick = async () => {
-      if (qr) {
-        try { await qr.stop(); } catch {}
-      }
-      $("qrBox").style.display = "none";
-    };
-
-    // ====== Upload ======
-    const slots = [
-      "vin_error",
-      "comp_1","comp_2","comp_3","comp_4",
-      "corr_pre","corr_post",
-      "voltaje",
-      "scan_carro"
-    ];
-
-    function fileToB64(file) {
-      return new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => {
-          const dataUrl = r.result; // "data:image/jpeg;base64,...."
-          const b64 = String(dataUrl).split(",")[1] || "";
-          resolve(b64);
-        };
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
     }
 
-    $("btnUpload").onclick = async () => {
-      $("out").textContent = "Preparando...\n";
+    async function stopScan(){
+      if (qr) { try { await qr.stop(); } catch {} }
+      $("qrBox").style.display = "none";
+      $("btnStop").style.display = "none";
+    }
 
-      const vin = $("vin").value.trim();
-      const dateStr = ($("dateStr").value.trim() || todayYYYYMMDD());
-
-      if (!vin) {
-        $("out").textContent = "❌ Falta VIN.\n";
-        return;
-      }
-
-      // Recolectar archivos (solo los que existan)
-      const files = [];
-      for (const slot of slots) {
-        const input = $(slot);
-        const f = input && input.files && input.files[0];
-        if (f) {
-          const b64 = await fileToB64(f);
-          files.push({
-            slot,
-            name: `${slot}.jpg`,
-            mimeType: f.type || "image/jpeg",
-            b64
-          });
-        }
-      }
-
-      // Si quieres obligar que estén las 9 sí o sí:
-      if (files.length !== 9) { ... }
-
-      const payload = { vin, dateStr, files };
-
-      $("out").textContent += `Subiendo ${files.length} archivo(s)...\n`;
-
-      try {
-        const res = await fetch(APS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        const j = await res.json();
-        $("out").textContent += JSON.stringify(j, null, 2);
-      } catch (e) {
-        $("out").textContent += "\n❌ Error: " + e;
-      }
-    };
+    $("btnScan").onclick = startScan;
+    $("btnStop").onclick = stopScan;
   </script>
+
 </body>
 </html>
