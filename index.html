@@ -9,7 +9,7 @@
     .row { margin: 10px 0; }
     .box { border: 1px solid #ddd; padding: 12px; border-radius: 10px; margin: 10px 0; }
     label { display:block; font-weight:600; margin-bottom:6px; }
-    input[type="text"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #bbb; border-radius: 10px; }
+    input[type="text"], input[type="date"], textarea { width: 100%; padding: 10px; border: 1px solid #bbb; border-radius: 10px; }
     button { padding: 10px 14px; border: 0; border-radius: 10px; cursor: pointer; }
     .btn { background: #0b5fff; color: white; }
     .btn2 { background: #111; color: white; }
@@ -31,184 +31,360 @@
     .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
     .miniInfo{ font-size:12px; color:#444; }
     .hiddenInput{ display:none; }
+
+    /* ====== NUEVO: PANTALLAS ====== */
+    .screen{ display:none; }
+    .screen.active{ display:block; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; margin: 8px 0 14px;
+    }
+    .topbar h2, .topbar h3{ margin:0; }
+    .menuGrid{
+      display:grid; gap:12px;
+      grid-template-columns: 1fr;
+    }
+    .menuCard{
+      border:1px solid #e5e5e5; border-radius:14px; padding:14px;
+      background:#fff;
+    }
+    .menuTitle{ font-weight:800; font-size:18px; margin:0 0 4px; }
+    .menuDesc{ margin:0; color:#555; font-size:13px; }
+    .menuCard .btn{ width:100%; margin-top:10px; }
+    textarea{ min-height: 90px; resize: vertical; }
   </style>
 </head>
 <body>
 
-  <h2>Subida por VIN (Colaborativo)</h2>
+  <!-- =========================
+       PANTALLA 0: MENÚ INICIAL
+       ========================= -->
+  <section id="screenMenu" class="screen active">
+    <div class="topbar">
+      <h2>Uploader GLP</h2>
+      <span class="small">Selecciona una opción</span>
+    </div>
 
-  <div class="box">
+    <div class="menuGrid">
+      <div class="menuCard">
+        <p class="menuTitle">Registrar parámetros</p>
+        <p class="menuDesc">Sube las 9 fotos (VIN, compresión x4, corrientes, voltaje, scan del carro) a Drive.</p>
+        <button class="btn" id="goParams">Entrar</button>
+      </div>
+
+      <div class="menuCard">
+        <p class="menuTitle">Registrar falla</p>
+        <p class="menuDesc">Registra una falla con nota + múltiples imágenes (pantalla lista para conectar a tu APS).</p>
+        <button class="btn" id="goFalla">Entrar</button>
+      </div>
+
+      <div class="menuCard">
+        <p class="menuTitle">Control calidad</p>
+        <p class="menuDesc">Pantalla de control de calidad (placeholder por ahora).</p>
+        <button class="btn" id="goCalidad">Entrar</button>
+      </div>
+    </div>
+
+    <div class="box" style="margin-top:14px;">
+      <div class="small">
+        Tip: Este menú es solo una “capa” arriba. Tu lógica original vive completa dentro de <b>Registrar parámetros</b>.
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================
+       PANTALLA 1: REGISTRAR PARÁMETROS (TU CÓDIGO)
+       ========================= -->
+  <section id="screenParams" class="screen">
+    <div class="topbar">
+      <h2>Registrar parámetros</h2>
+      <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
+    </div>
+
+    <!-- ======= TU HTML ORIGINAL (casi intacto) ======= -->
+    <div class="box">
+      <div class="row">
+        <!-- ✅ NUEVO: botones separados -->
+        <button class="btn" id="btnScanQR">Escanear SOLO QR</button>
+        <button class="btn" id="btnScanBAR">Escanear SOLO BARRAS</button>
+        <button class="btn3" id="btnStop" style="display:none;">Detener</button>
+        <div class="small" id="scanMsg"></div>
+      </div>
+
+      <div id="qrBox" style="display:none; margin-top:10px;">
+        <div class="small" id="scanMode" style="margin-bottom:8px;"></div>
+        <div id="qrReader"></div>
+        <div class="small" style="margin-top:8px;">
+          Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
+        </div>
+      </div>
+
+      <div class="row">
+        <label>VIN (texto)</label>
+        <input id="vinText" type="text" placeholder="Escanea o escribe VIN..." />
+      </div>
+
+      <div class="row">
+        <label>Fecha (YYYY-MM-DD)</label>
+        <input id="dateStr" type="date" />
+        <div class="small">Si no eliges fecha, usa la de hoy.</div>
+        <div class="small"><b>Tip:</b> aquí se comprime antes de subir (más rápido).</div>
+      </div>
+
+      <div class="row">
+        <button class="btn3" id="btnRefresh">Refrescar estado</button>
+      </div>
+    </div>
+
+    <h3>Fotos (9) — se guardan en Drive</h3>
+
+    <div class="box grid">
+
+      <!-- 1) VIN -->
+      <div class="slotCard" data-slot="vin">
+        <label>1) Foto del VIN</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="vin_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="vin_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" data-pick="cam" data-slot="vin">📷 Tomar foto</button>
+          <button class="btn3" type="button" data-pick="file" data-slot="vin">🖼️ Subir archivo</button>
+          <button class="btn3" type="button" data-clear="1" data-slot="vin">🧹 Quitar</button>
+        </div>
+
+        <div class="mini">
+          <div class="thumb" id="vin_previewBox"><span class="small">Sin foto</span></div>
+          <div class="miniInfo" id="vin_meta">Ningún archivo seleccionado.</div>
+        </div>
+      </div>
+
+      <!-- 2) COMPRESIÓN: 4 fotos APILADAS 4->3->2->1 -->
+      <div class="slotCard" data-slot="comp">
+        <label>2) Compresión (toma 4 fotos)</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" data-pick="cam" data-slot="comp">📷 Tomar foto (agrega)</button>
+          <button class="btn3" type="button" data-pick="file" data-slot="comp">🖼️ Subir archivo (agrega)</button>
+          <button class="btn3" type="button" data-clear="1" data-slot="comp">🧹 Quitar todas</button>
+        </div>
+
+        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;">
+          <div class="thumb" id="comp_p1"><span class="small">1</span></div>
+          <div class="thumb" id="comp_p2"><span class="small">2</span></div>
+          <div class="thumb" id="comp_p3"><span class="small">3</span></div>
+          <div class="thumb" id="comp_p4"><span class="small">4</span></div>
+        </div>
+
+        <div class="miniInfo" id="comp_meta" style="margin-top:10px;">
+          Ningún archivo seleccionado.
+        </div>
+      </div>
+
+      <!-- 6) Corriente antes -->
+      <div class="slotCard" data-slot="corr_pre">
+        <label>6) Corriente antes</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="corr_pre_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="corr_pre_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" data-pick="cam" data-slot="corr_pre">📷 Tomar foto</button>
+          <button class="btn3" type="button" data-pick="file" data-slot="corr_pre">🖼️ Subir archivo</button>
+          <button class="btn3" type="button" data-clear="1" data-slot="corr_pre">🧹 Quitar</button>
+        </div>
+
+        <div class="mini">
+          <div class="thumb" id="corr_pre_previewBox"><span class="small">Sin foto</span></div>
+          <div class="miniInfo" id="corr_pre_meta">Ningún archivo seleccionado.</div>
+        </div>
+      </div>
+
+      <!-- 7) Corriente después -->
+      <div class="slotCard" data-slot="corr_post">
+        <label>7) Corriente después</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="corr_post_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="corr_post_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" data-pick="cam" data-slot="corr_post">📷 Tomar foto</button>
+          <button class="btn3" type="button" data-pick="file" data-slot="corr_post">🖼️ Subir archivo</button>
+          <button class="btn3" type="button" data-clear="1" data-slot="corr_post">🧹 Quitar</button>
+        </div>
+
+        <div class="mini">
+          <div class="thumb" id="corr_post_previewBox"><span class="small">Sin foto</span></div>
+          <div class="miniInfo" id="corr_post_meta">Ningún archivo seleccionado.</div>
+        </div>
+      </div>
+
+      <!-- 8) Voltaje -->
+      <div class="slotCard" data-slot="voltaje">
+        <label>8) Voltaje</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="voltaje_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="voltaje_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" data-pick="cam" data-slot="voltaje">📷 Tomar foto</button>
+          <button class="btn3" type="button" data-pick="file" data-slot="voltaje">🖼️ Subir archivo</button>
+          <button class="btn3" type="button" data-clear="1" data-slot="voltaje">🧹 Quitar</button>
+        </div>
+
+        <div class="mini">
+          <div class="thumb" id="voltaje_previewBox"><span class="small">Sin foto</span></div>
+          <div class="miniInfo" id="voltaje_meta">Ningún archivo seleccionado.</div>
+        </div>
+      </div>
+
+      <!-- 9) Scan del carro -->
+      <div class="slotCard" data-slot="scan_carro">
+        <label>9) Scan del carro</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="scan_carro_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="scan_carro_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" data-pick="cam" data-slot="scan_carro">📷 Tomar foto</button>
+          <button class="btn3" type="button" data-pick="file" data-slot="scan_carro">🖼️ Subir archivo</button>
+          <button class="btn3" type="button" data-clear="1" data-slot="scan_carro">🧹 Quitar</button>
+        </div>
+
+        <div class="mini">
+          <div class="thumb" id="scan_carro_previewBox"><span class="small">Sin foto</span></div>
+          <div class="miniInfo" id="scan_carro_meta">Ningún archivo seleccionado.</div>
+        </div>
+      </div>
+
+    </div>
+
     <div class="row">
-      <!-- ✅ NUEVO: botones separados -->
-      <button class="btn" id="btnScanQR">Escanear SOLO QR</button>
-      <button class="btn" id="btnScanBAR">Escanear SOLO BARRAS</button>
-      <button class="btn3" id="btnStop" style="display:none;">Detener</button>
-      <div class="small" id="scanMsg"></div>
+      <button class="btn2" id="btnUpload">SUBIR FOTOS SELECCIONADAS A DRIVE</button>
     </div>
 
-    <div id="qrBox" style="display:none; margin-top:10px;">
-      <div class="small" id="scanMode" style="margin-bottom:8px;"></div>
-      <div id="qrReader"></div>
-      <div class="small" style="margin-top:8px;">
-        Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
-      </div>
+    <h3>Estado colaborativo</h3>
+    <div id="out" class="status">Listo.</div>
+  </section>
+
+  <!-- =========================
+       PANTALLA 2: REGISTRAR FALLA
+       ========================= -->
+  <section id="screenFalla" class="screen">
+    <div class="topbar">
+      <h2>Registrar falla</h2>
+      <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
     </div>
 
-    <div class="row">
-      <label>VIN (texto)</label>
-      <input id="vinText" type="text" placeholder="Escanea o escribe VIN..." />
-    </div>
-
-    <div class="row">
-      <label>Fecha (YYYY-MM-DD)</label>
-      <input id="dateStr" type="date" />
-      <div class="small">Si no eliges fecha, usa la de hoy.</div>
-      <div class="small"><b>Tip:</b> aquí se comprime antes de subir (más rápido).</div>
-    </div>
-
-    <div class="row">
-      <button class="btn3" id="btnRefresh">Refrescar estado</button>
-    </div>
-  </div>
-
-  <h3>Fotos (9) — se guardan en Drive</h3>
-
-  <div class="box grid">
-
-    <!-- 1) VIN -->
-    <div class="slotCard" data-slot="vin">
-      <label>1) Foto del VIN</label>
-
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="vin_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="vin_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="vin">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="vin">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="vin">🧹 Quitar</button>
+    <div class="box">
+      <div class="row">
+        <label>VIN</label>
+        <input id="fallaVin" type="text" placeholder="Escribe o pega VIN..." />
+        <div class="small">Tip: puedes copiarlo desde “Registrar parámetros”.</div>
       </div>
 
-      <div class="mini">
-        <div class="thumb" id="vin_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="vin_meta">Ningún archivo seleccionado.</div>
+      <div class="row">
+        <label>Fecha</label>
+        <input id="fallaDate" type="date" />
+      </div>
+
+      <div class="row">
+        <label>Descripción / Nota</label>
+        <textarea id="fallaNota" placeholder="Describe la falla..."></textarea>
+      </div>
+
+      <div class="row">
+        <label>Fotos de falla (múltiples)</label>
+        <input id="fallaFotos" type="file" accept="image/*,.heic,.heif" multiple />
+        <div class="small" id="fallaFotosMeta">Ningún archivo seleccionado.</div>
+      </div>
+
+      <div class="row">
+        <button class="btn2" id="btnEnviarFalla">ENVIAR FALLA</button>
+      </div>
+
+      <div class="small">
+        Nota: esta pantalla está lista. Si quieres, la conecto a tu Apps Script con un action tipo <b>uploadFalla</b>
+        que cree carpeta <b>CHASIS-FECHA/FALLAS</b> y suba todo ahí.
       </div>
     </div>
 
-    <!-- 2) COMPRESIÓN: 4 fotos APILADAS 4->3->2->1 -->
-    <div class="slotCard" data-slot="comp">
-      <label>2) Compresión (toma 4 fotos)</label>
+    <div id="outFalla" class="status">Listo.</div>
+  </section>
 
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="comp">📷 Tomar foto (agrega)</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="comp">🖼️ Subir archivo (agrega)</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="comp">🧹 Quitar todas</button>
-      </div>
-
-      <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;">
-        <div class="thumb" id="comp_p1"><span class="small">1</span></div>
-        <div class="thumb" id="comp_p2"><span class="small">2</span></div>
-        <div class="thumb" id="comp_p3"><span class="small">3</span></div>
-        <div class="thumb" id="comp_p4"><span class="small">4</span></div>
-      </div>
-
-      <div class="miniInfo" id="comp_meta" style="margin-top:10px;">
-        Ningún archivo seleccionado.
-      </div>
+  <!-- =========================
+       PANTALLA 3: CONTROL CALIDAD
+       ========================= -->
+  <section id="screenCalidad" class="screen">
+    <div class="topbar">
+      <h2>Control calidad</h2>
+      <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
     </div>
 
-    <!-- 6) Corriente antes -->
-    <div class="slotCard" data-slot="corr_pre">
-      <label>6) Corriente antes</label>
-
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="corr_pre_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="corr_pre_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="corr_pre">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="corr_pre">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="corr_pre">🧹 Quitar</button>
+    <div class="box">
+      <div class="row">
+        <label>VIN</label>
+        <input id="qcVin" type="text" placeholder="VIN..." />
       </div>
-
-      <div class="mini">
-        <div class="thumb" id="corr_pre_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="corr_pre_meta">Ningún archivo seleccionado.</div>
+      <div class="row">
+        <button class="btn3" id="btnQcDemo">Consultar (demo)</button>
       </div>
+      <div class="small">Placeholder: aquí puedes poner checklist, ver fotos, aprobar/rechazar, etc.</div>
     </div>
 
-    <!-- 7) Corriente después -->
-    <div class="slotCard" data-slot="corr_post">
-      <label>7) Corriente después</label>
-
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="corr_post_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="corr_post_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="corr_post">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="corr_post">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="corr_post">🧹 Quitar</button>
-      </div>
-
-      <div class="mini">
-        <div class="thumb" id="corr_post_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="corr_post_meta">Ningún archivo seleccionado.</div>
-      </div>
-    </div>
-
-    <!-- 8) Voltaje -->
-    <div class="slotCard" data-slot="voltaje">
-      <label>8) Voltaje</label>
-
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="voltaje_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="voltaje_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="voltaje">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="voltaje">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="voltaje">🧹 Quitar</button>
-      </div>
-
-      <div class="mini">
-        <div class="thumb" id="voltaje_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="voltaje_meta">Ningún archivo seleccionado.</div>
-      </div>
-    </div>
-
-    <!-- 9) Scan del carro -->
-    <div class="slotCard" data-slot="scan_carro">
-      <label>9) Scan del carro</label>
-
-      <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="scan_carro_cam">
-      <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="scan_carro_file">
-
-      <div class="slotActions">
-        <button class="btn3" type="button" data-pick="cam" data-slot="scan_carro">📷 Tomar foto</button>
-        <button class="btn3" type="button" data-pick="file" data-slot="scan_carro">🖼️ Subir archivo</button>
-        <button class="btn3" type="button" data-clear="1" data-slot="scan_carro">🧹 Quitar</button>
-      </div>
-
-      <div class="mini">
-        <div class="thumb" id="scan_carro_previewBox"><span class="small">Sin foto</span></div>
-        <div class="miniInfo" id="scan_carro_meta">Ningún archivo seleccionado.</div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="row">
-    <button class="btn2" id="btnUpload">SUBIR FOTOS SELECCIONADAS A DRIVE</button>
-  </div>
-
-  <h3>Estado colaborativo</h3>
-  <div id="out" class="status">Listo.</div>
+    <div id="outQc" class="status">Listo.</div>
+  </section>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     const APS_URL = "https://script.google.com/macros/s/AKfycbw8WdoYVKGU9ztmHv81c-GzcUxpaCdMn5mvk5XgqJQ7kicbivdr6DFRIgTEOq_nIUMV/exec";
     const $ = (id) => document.getElementById(id);
 
+    // =========================
+    // ✅ NAV ENTRE PANTALLAS
+    // =========================
+    const screens = {
+      menu: $("screenMenu"),
+      params: $("screenParams"),
+      falla: $("screenFalla"),
+      calidad: $("screenCalidad")
+    };
+
+    function showScreen(name){
+      Object.values(screens).forEach(s => s.classList.remove("active"));
+      const el = screens[name];
+      if (el) el.classList.add("active");
+      // al entrar al menú, apagamos cámara por seguridad
+      if (name !== "params") { try { stopScan(); } catch {} }
+    }
+
+    $("goParams").onclick = () => showScreen("params");
+    $("goFalla").onclick  = () => {
+      // precargar VIN/fecha si ya estaban en params
+      const vin = $("vinText")?.value?.trim() || "";
+      if (vin) $("fallaVin").value = vin;
+      $("fallaDate").value = ($("dateStr")?.value || todayYYYYMMDD());
+      showScreen("falla");
+    };
+    $("goCalidad").onclick = () => {
+      const vin = $("vinText")?.value?.trim() || "";
+      if (vin) $("qcVin").value = vin;
+      showScreen("calidad");
+    };
+
+    document.addEventListener("click", (ev) => {
+      const b = ev.target.closest("button");
+      if (!b) return;
+      const nav = b.getAttribute("data-nav");
+      if (nav === "menu") showScreen("menu");
+    });
+
+    // =========================
+    // (Tu helper original)
+    // =========================
     const slotLabels = {
       vin: "Foto del VIN",
       comp_1: "Compresión",
@@ -233,7 +409,10 @@
       const day = String(d.getDate()).padStart(2,'0');
       return `${y}-${m}-${day}`;
     }
-    (function initDate(){ $("dateStr").value = todayYYYYMMDD(); })();
+    (function initDate(){
+      $("dateStr").value = todayYYYYMMDD();
+      $("fallaDate").value = todayYYYYMMDD();
+    })();
 
     async function callAPS(payload){
       const res = await fetch(APS_URL, {
@@ -254,6 +433,8 @@
     function setPreview(slot, file){
       const box = $(`${slot}_previewBox`);
       const meta = $(`${slot}_meta`);
+      if (!box || !meta) return;
+
       if (!file){
         box.innerHTML = `<span class="small">Sin foto</span>`;
         meta.textContent = "Ningún archivo seleccionado.";
@@ -268,7 +449,7 @@
     function setRemotePreview(slot, p){
       const box = $(`${slot}_previewBox`);
       const meta = $(`${slot}_meta`);
-      if (!p) return;
+      if (!box || !meta || !p) return;
 
       const src1 = p.thumbUrl || "";
       const src2 = p.imgUrl || "";
@@ -581,25 +762,21 @@
     // ✅ SCANNER SEPARADO: SOLO QR  /  SOLO BARRAS
     // =========================================================
     let qr = null;
-    let scanning = false;
 
-    // Normaliza el texto leído (sirve para QR o barras)
     function normalizeScanText(t){
       return String(t || "")
-        .replace(/\s+/g, "")      // quita espacios y saltos
+        .replace(/\s+/g, "")
         .trim();
     }
 
     async function stopScan(){
       if (qr) { try { await qr.stop(); } catch {} }
-      scanning = false;
       $("qrBox").style.display = "none";
       $("btnStop").style.display = "none";
       $("scanMode").textContent = "";
     }
 
     async function startScanQR(){
-      // si estaba escaneando en otro modo, detenemos primero
       await stopScan();
 
       $("qrBox").style.display = "block";
@@ -609,16 +786,13 @@
 
       if (!qr) qr = new Html5Qrcode("qrReader");
 
-      // QR: el rectángulo puede ser más cuadrado
       const config = {
         fps: 12,
         qrbox: { width: 280, height: 280 },
-        // ✅ SOLO QR:
         formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
       };
 
       try {
-        scanning = true;
         await qr.start(
           { facingMode: "environment" },
           config,
@@ -628,13 +802,11 @@
             $("vinText").value = val;
             $("scanMsg").textContent = "Detectado (QR): " + val;
             refreshStatus();
-            // opcional: si quieres que se detenga al leer 1 vez:
             stopScan();
           },
           () => {}
         );
       } catch (e) {
-        scanning = false;
         $("scanMsg").textContent = "Error cámara (QR): " + e;
       }
     }
@@ -649,10 +821,9 @@
 
       if (!qr) qr = new Html5Qrcode("qrReader");
 
-      // BARRAS: mejor un rectángulo HORIZONTAL (tipo “ventana”)
       const config = {
         fps: 12,
-        qrbox: { width: 200, height: 360 }, // ✅ vertical (alto mayor)
+        qrbox: { width: 200, height: 360 },
         formatsToSupport: [
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.CODE_39,
@@ -666,7 +837,6 @@
       };
 
       try {
-        scanning = true;
         await qr.start(
           { facingMode: "environment" },
           config,
@@ -676,13 +846,11 @@
             $("vinText").value = val;
             $("scanMsg").textContent = "Detectado (BARRAS): " + val;
             refreshStatus();
-            // opcional: detener al primer match
             stopScan();
           },
           () => {}
         );
       } catch (e) {
-        scanning = false;
         $("scanMsg").textContent = "Error cámara (BARRAS): " + e;
       }
     }
@@ -691,6 +859,41 @@
     $("btnScanBAR").onclick = startScanBAR;
     $("btnStop").onclick = stopScan;
 
+    // =========================
+    // REGISTRAR FALLA (simple)
+    // =========================
+    $("fallaFotos").addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) $("fallaFotosMeta").textContent = "Ningún archivo seleccionado.";
+      else {
+        const total = files.reduce((a,f)=>a+(f.size||0),0);
+        $("fallaFotosMeta").textContent = `${files.length} archivo(s) • ${humanBytes(total)}`;
+      }
+    });
+
+    $("btnEnviarFalla").onclick = async () => {
+      const vin = $("fallaVin").value.trim();
+      const dateStr = ($("fallaDate").value || todayYYYYMMDD());
+      const nota = ($("fallaNota").value || "").trim();
+      const files = Array.from($("fallaFotos").files || []);
+
+      if (!vin) { $("outFalla").textContent = "❌ Falta VIN."; return; }
+      if (!nota && files.length === 0) { $("outFalla").textContent = "⚠️ Agrega nota o al menos una foto."; return; }
+
+      // Placeholder: aquí conectas tu APS cuando quieras (action uploadFalla)
+      $("outFalla").textContent =
+        `✅ Listo para enviar (placeholder)\nVIN: ${vin}\nFecha: ${dateStr}\nNota: ${nota || "(sin nota)"}\nFotos: ${files.length}\n\n` +
+        `Cuando lo conectemos al backend: creamos carpeta CHASIS-FECHA/FALLAS y subimos todo.`;
+    };
+
+    // =========================
+    // CONTROL CALIDAD (demo)
+    // =========================
+    $("btnQcDemo").onclick = () => {
+      const vin = $("qcVin").value.trim();
+      if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
+      $("outQc").textContent = `QC demo para VIN: ${vin}\n(placeholder)`;
+    };
   </script>
 
 </body>
