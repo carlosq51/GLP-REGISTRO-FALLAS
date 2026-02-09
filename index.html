@@ -297,10 +297,21 @@
       </div>
 
       <div class="row">
-        <label>Fotos de falla (múltiples)</label>
-        <input id="fallaFotos" type="file" accept="image/*,.heic,.heif" multiple />
-        <div class="small" id="fallaFotosMeta">Ningún archivo seleccionado.</div>
+        <label>Fotos de falla (sin límite)</label>
+      
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="falla_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="falla_file" multiple>
+      
+        <div class="slotActions">
+          <button class="btn3" type="button" id="btnFallaCam">📷 Tomar foto (agrega)</button>
+          <button class="btn3" type="button" id="btnFallaFile">🖼️ Subir archivo(s) (agrega)</button>
+          <button class="btn3" type="button" id="btnFallaClear">🧹 Quitar todas</button>
+        </div>
+      
+        <div class="grid" id="fallaGrid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;"></div>
+        <div class="small" id="fallaFotosMeta">0 archivo(s).</div>
       </div>
+
 
       <div class="row">
         <button class="btn2" id="btnEnviarFalla">ENVIAR FALLA</button>
@@ -318,25 +329,54 @@
   <!-- =========================
        PANTALLA 3: CONTROL CALIDAD
        ========================= -->
-  <section id="screenCalidad" class="screen">
-    <div class="topbar">
-      <h2>Control calidad</h2>
-      <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
-    </div>
 
-    <div class="box">
-      <div class="row">
-        <label>VIN</label>
-        <input id="qcVin" type="text" placeholder="VIN..." />
+      <section id="screenCalidad" class="screen">
+      <div class="topbar">
+        <h2>Control calidad</h2>
+        <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
       </div>
-      <div class="row">
-        <button class="btn3" id="btnQcDemo">Consultar (demo)</button>
+    
+      <div class="box">
+        <div class="row">
+          <label>VIN</label>
+          <input id="qcVin" type="text" placeholder="VIN..." />
+        </div>
+    
+        <div class="row">
+          <label>Fecha</label>
+          <input id="qcDate" type="date" />
+        </div>
+    
+        <div class="slotCard" style="margin-top:10px;">
+          <label>Fotos de Calidad (mín 3, máx 4)</label>
+    
+          <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="qc_cam">
+          <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="qc_file">
+    
+          <div class="slotActions">
+            <button class="btn3" type="button" id="btnQcCam">📷 Tomar foto (agrega)</button>
+            <button class="btn3" type="button" id="btnQcFile">🖼️ Subir archivo (agrega)</button>
+            <button class="btn3" type="button" id="btnQcClear">🧹 Quitar todas</button>
+          </div>
+    
+          <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;">
+            <div class="thumb" id="qc_p1"><span class="small">1</span></div>
+            <div class="thumb" id="qc_p2"><span class="small">2</span></div>
+            <div class="thumb" id="qc_p3"><span class="small">3</span></div>
+            <div class="thumb" id="qc_p4"><span class="small">4</span></div>
+          </div>
+    
+          <div class="miniInfo" id="qc_meta" style="margin-top:10px;">0/4 seleccionadas.</div>
+        </div>
+    
+        <div class="row">
+          <button class="btn2" id="btnQcUpload">SUBIR CALIDAD</button>
+        </div>
       </div>
-      <div class="small">Placeholder: aquí puedes poner checklist, ver fotos, aprobar/rechazar, etc.</div>
-    </div>
+    
+      <div id="outQc" class="status">Listo.</div>
+    </section>
 
-    <div id="outQc" class="status">Listo.</div>
-  </section>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
@@ -862,38 +902,213 @@
     // =========================
     // REGISTRAR FALLA (simple)
     // =========================
-    $("fallaFotos").addEventListener("change", (e) => {
-      const files = Array.from(e.target.files || []);
-      if (!files.length) $("fallaFotosMeta").textContent = "Ningún archivo seleccionado.";
-      else {
-        const total = files.reduce((a,f)=>a+(f.size||0),0);
-        $("fallaFotosMeta").textContent = `${files.length} archivo(s) • ${humanBytes(total)}`;
-      }
+
+    // ====== FALLAS: lista dinámica de fotos (sin límite) ======
+    let fallaFiles = []; // array de File
+    
+    function renderFalla(){
+      const grid = $("fallaGrid");
+      if (!grid) return;
+    
+      grid.innerHTML = "";
+    
+      fallaFiles.forEach((f, idx) => {
+        const url = URL.createObjectURL(f);
+    
+        const wrap = document.createElement("div");
+        wrap.style.position = "relative";
+    
+        const thumb = document.createElement("div");
+        thumb.className = "thumb";
+        thumb.innerHTML = `<img alt="falla" src="${url}">`;
+        wrap.appendChild(thumb);
+    
+        // botón quitar
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "✖";
+        x.className = "btn3";
+        x.style.position = "absolute";
+        x.style.top = "6px";
+        x.style.right = "6px";
+        x.style.padding = "4px 8px";
+        x.style.borderRadius = "10px";
+        x.onclick = () => {
+          fallaFiles.splice(idx, 1);
+          renderFalla();
+        };
+        wrap.appendChild(x);
+    
+        grid.appendChild(wrap);
+    
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
+      });
+    
+      const total = fallaFiles.reduce((a,f)=>a+(f.size||0),0);
+      $("fallaFotosMeta").textContent = `${fallaFiles.length} archivo(s) • ${humanBytes(total)}`;
+    }
+    
+    function addFallaFiles(fileList){
+      const arr = Array.from(fileList || []);
+      if (!arr.length) return;
+      fallaFiles.push(...arr);
+      renderFalla();
+    }
+    
+    // botones
+    $("btnFallaCam").onclick = () => $("falla_cam").click();
+    $("btnFallaFile").onclick = () => $("falla_file").click();
+    $("btnFallaClear").onclick = () => { fallaFiles = []; renderFalla(); };
+    
+    // inputs
+    $("falla_cam").addEventListener("change", (e) => {
+      addFallaFiles(e.target.files);
+      e.target.value = "";
     });
+    $("falla_file").addEventListener("change", (e) => {
+      addFallaFiles(e.target.files);
+      e.target.value = "";
+    });
+    
+    // init
+    renderFalla();
+
 
     $("btnEnviarFalla").onclick = async () => {
       const vin = $("fallaVin").value.trim();
       const dateStr = ($("fallaDate").value || todayYYYYMMDD());
-      const nota = ($("fallaNota").value || "").trim();
-      const files = Array.from($("fallaFotos").files || []);
-
+      const note = ($("fallaNota").value || "").trim();
+    
       if (!vin) { $("outFalla").textContent = "❌ Falta VIN."; return; }
-      if (!nota && files.length === 0) { $("outFalla").textContent = "⚠️ Agrega nota o al menos una foto."; return; }
-
-      // Placeholder: aquí conectas tu APS cuando quieras (action uploadFalla)
+      if (!note && fallaFiles.length === 0) { $("outFalla").textContent = "⚠️ Agrega una nota o al menos una foto."; return; }
+    
+      $("outFalla").textContent = `Preparando ${fallaFiles.length} foto(s)...\n`;
+    
+      const files = [];
+      for (let i = 0; i < fallaFiles.length; i++){
+        $("outFalla").textContent = `Preparando foto ${i+1}/${fallaFiles.length}...\n`;
+        const b64 = await fileToB64Compressed(fallaFiles[i]);
+        files.push({ slot: "falla", mimeType: "image/jpeg", b64 });
+      }
+    
+      $("outFalla").textContent = `Subiendo FALLA (${files.length} foto(s) + nota)...\n`;
+      const j = await callAPS({ action: "uploadFalla", vin, dateStr, note, files });
+      if (!j.ok) { $("outFalla").textContent = "❌ uploadFalla: " + j.error; return; }
+    
       $("outFalla").textContent =
-        `✅ Listo para enviar (placeholder)\nVIN: ${vin}\nFecha: ${dateStr}\nNota: ${nota || "(sin nota)"}\nFotos: ${files.length}\n\n` +
-        `Cuando lo conectemos al backend: creamos carpeta CHASIS-FECHA/FALLAS y subimos todo.`;
+        `✅ Falla registrada.\n` +
+        `Carpeta: ${j.carFolderName}/FALLAS\n` +
+        `Batch: ${j.batchId}\n` +
+        `Guardados: ${j.savedCount}`;
+    
+      fallaFiles = [];
+      renderFalla();
     };
+
 
     // =========================
     // CONTROL CALIDAD (demo)
     // =========================
-    $("btnQcDemo").onclick = () => {
+
+    // =========================
+    // CONTROL CALIDAD (3 a 4 fotos)
+    // =========================
+    let qcFiles = [null, null, null, null];
+    
+    (function initQcDate(){
+      const qcDate = $("qcDate");
+      if (qcDate) qcDate.value = todayYYYYMMDD();
+    })();
+    
+    function clearQc(){
+      qcFiles = [null, null, null, null];
+      ["qc_p1","qc_p2","qc_p3","qc_p4"].forEach((id, idx) => {
+        const box = $(id);
+        if (box) box.innerHTML = `<span class="small">${idx+1}</span>`;
+      });
+      if ($("qc_meta")) $("qc_meta").textContent = "0/4 seleccionadas.";
+      if ($("qc_cam")) $("qc_cam").value = "";
+      if ($("qc_file")) $("qc_file").value = "";
+    }
+    
+    function renderQc(){
+      const ids = ["qc_p1","qc_p2","qc_p3","qc_p4"];
+      ids.forEach((id, idx) => {
+        const box = $(id);
+        if (!box) return;
+        const f = qcFiles[idx];
+        if (!f){
+          box.innerHTML = `<span class="small">${idx+1}</span>`;
+          return;
+        }
+        const url = URL.createObjectURL(f);
+        box.innerHTML = `<img alt="qc" src="${url}">`;
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
+      });
+    
+      const chosen = qcFiles.filter(Boolean);
+      const total = chosen.reduce((a,f)=>a+(f.size||0),0);
+      $("qc_meta").textContent = `${chosen.length}/4 seleccionadas • ${humanBytes(total)} (mín 3)`;
+    }
+    
+    function addQcOne(file){
+      if (!file) return;
+      // entra al 4 y empuja atrás (igual compresión)
+      qcFiles[0] = qcFiles[1];
+      qcFiles[1] = qcFiles[2];
+      qcFiles[2] = qcFiles[3];
+      qcFiles[3] = file;
+      renderQc();
+    }
+    
+    function onPickQc(e){
+      const f = e.target && e.target.files && e.target.files[0];
+      if (!f) return;
+      addQcOne(f);
+      e.target.value = "";
+    }
+    
+    $("btnQcCam").onclick = () => $("qc_cam").click();
+    $("btnQcFile").onclick = () => $("qc_file").click();
+    $("btnQcClear").onclick = clearQc;
+    
+    $("qc_cam").addEventListener("change", onPickQc);
+    $("qc_file").addEventListener("change", onPickQc);
+    
+    // init
+    clearQc();
+    
+    $("btnQcUpload").onclick = async () => {
       const vin = $("qcVin").value.trim();
+      const dateStr = ($("qcDate").value || todayYYYYMMDD());
       if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
-      $("outQc").textContent = `QC demo para VIN: ${vin}\n(placeholder)`;
+    
+      const chosen = qcFiles.filter(Boolean);
+      if (chosen.length < 3) { $("outQc").textContent = "⚠️ Debes subir mínimo 3 fotos de calidad."; return; }
+    
+      const files = [];
+      for (let i = 0; i < 4; i++){
+        const f = qcFiles[i];
+        if (!f) continue;
+        const slot = `calidad_${i+1}`;
+        $("outQc").textContent = `Preparando ${slot}...\n`;
+        const b64 = await fileToB64Compressed(f);
+        files.push({ slot, mimeType: "image/jpeg", b64 });
+      }
+    
+      $("outQc").textContent = `Subiendo CALIDAD (${files.length} foto(s))...\n`;
+      const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
+      if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
+    
+      $("outQc").textContent =
+        `✅ Calidad registrada.\n` +
+        `Carpeta: ${j.carFolderName}/CALIDAD\n` +
+        `Guardados: ${j.saved.length}`;
+    
+      clearQc();
     };
+
+    
   </script>
 
 </body>
