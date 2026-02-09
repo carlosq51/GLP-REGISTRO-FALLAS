@@ -153,18 +153,22 @@
     }
 
     function renderStatus(j){
+      let missing = [];
       let s = "";
       s += `VIN: ${j.vin}\n`;
       s += `Fecha: ${j.dateStr}\n`;
       s += `Carpeta: ${j.monthFolderName} / ${j.carFolderName} / REGISTRO\n\n`;
-
+    
       for (const slot of slots){
         const ok = j.status && j.status[slot];
         const p = j.previews && j.previews[slot];
         s += `${ok ? "✅" : "❌"} ${slotLabels[slot]}`;
         if (p && p.url) s += `  (ver: ${p.url})`;
         s += "\n";
+        if (!ok) missing.push(slotLabels[slot]);
       }
+    
+      s += `\nFaltantes (${missing.length}/9):\n- ` + missing.join("\n- ");
       $("out").textContent = s;
     }
 
@@ -194,33 +198,40 @@
       });
     }
 
+
+
     $("btnUpload").onclick = async () => {
       const vin = $("vinText").value.trim();
       const dateStr = ($("dateStr").value || todayYYYYMMDD());
-
       if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
-
-      // recolectar 9 fotos sí o sí
+    
+      // ✅ recolectar SOLO las fotos elegidas
       const files = [];
       for (const slot of slots){
         const input = $(slot);
         const f = input && input.files && input.files[0];
-        if (!f) {
-          $("out").textContent = `❌ Falta la foto: ${slotLabels[slot]} (${slot})`;
-          return;
+        if (f) {
+          const b64 = await fileToB64(f);
+          files.push({ slot, mimeType: f.type || "image/jpeg", b64 });
         }
-        const b64 = await fileToB64(f);
-        files.push({ slot, mimeType: f.type || "image/jpeg", b64 });
       }
-
-      $("out").textContent = "Subiendo 9 fotos...\n";
+    
+      if (files.length === 0) {
+        $("out").textContent = "⚠️ No seleccionaste ninguna foto para subir.";
+        await refreshStatus(); // igual muestra faltantes
+        return;
+      }
+    
+      $("out").textContent = `Subiendo ${files.length} foto(s)...\n`;
       const j = await callAPS({ action: "uploadFiles", vin, dateStr, files });
       if (!j.ok) { $("out").textContent = "❌ uploadFiles: " + j.error; return; }
-
+    
       $("out").textContent = "✅ Subido.\nRefrescando estado...\n";
       await refreshStatus();
     };
 
+    
+   
     // ===== Scanner (QR / Barra) =====
     let qr = null;
 
