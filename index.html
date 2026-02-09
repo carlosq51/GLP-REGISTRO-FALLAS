@@ -17,7 +17,7 @@
     .grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     .small { color: #555; font-size: 12px; }
     .status { white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 10px; }
-    #qrReader { width: 100%; }
+    .qrReader { width: 100%; }
 
     .slotCard{ border:1px solid #e5e5e5; border-radius:12px; padding:12px; background:#fff; }
     .slotActions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
@@ -103,21 +103,21 @@
 
     <!-- ======= TU HTML ORIGINAL (casi intacto) ======= -->
     <div class="box">
-      <div class="row">
-        <!-- ✅ NUEVO: botones separados -->
-        <button class="btn" id="btnScanQR">Escanear SOLO QR</button>
-        <button class="btn" id="btnScanBAR">Escanear SOLO BARRAS</button>
-        <button class="btn3" id="btnStop" style="display:none;">Detener</button>
-        <div class="small" id="scanMsg"></div>
+     <div class="row">
+        <button class="btn" id="btnScanQR_params">Escanear SOLO QR</button>
+        <button class="btn" id="btnScanBAR_params">Escanear SOLO BARRAS</button>
+        <button class="btn3" id="btnStop_params" style="display:none;">Detener</button>
+        <div class="small" id="scanMsg_params"></div>
       </div>
-
-      <div id="qrBox" style="display:none; margin-top:10px;">
-        <div class="small" id="scanMode" style="margin-bottom:8px;"></div>
-        <div id="qrReader"></div>
+      
+      <div id="qrBox_params" style="display:none; margin-top:10px;">
+        <div class="small" id="scanMode_params" style="margin-bottom:8px;"></div>
+        <div id="qrReader_params" class="qrReader"></div>
         <div class="small" style="margin-top:8px;">
           Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
         </div>
       </div>
+
 
       <div class="row">
         <label>VIN (texto)</label>
@@ -280,6 +280,23 @@
     </div>
 
     <div class="box">
+
+      <div class="row">
+        <button class="btn" id="btnScanQR_falla">Escanear SOLO QR</button>
+        <button class="btn" id="btnScanBAR_falla">Escanear SOLO BARRAS</button>
+        <button class="btn3" id="btnStop_falla" style="display:none;">Detener</button>
+        <div class="small" id="scanMsg_falla"></div>
+      </div>
+      
+      <div id="qrBox_falla" style="display:none; margin-top:10px;">
+        <div class="small" id="scanMode_falla" style="margin-bottom:8px;"></div>
+        <div id="qrReader_falla" class="qrReader"></div>
+        <div class="small" style="margin-top:8px;">
+          Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
+        </div>
+      </div>
+
+      
       <div class="row">
         <label>VIN</label>
         <input id="fallaVin" type="text" placeholder="Escribe o pega VIN..." />
@@ -337,6 +354,22 @@
       </div>
     
       <div class="box">
+
+        <div class="row">
+          <button class="btn" id="btnScanQR_qc">Escanear SOLO QR</button>
+          <button class="btn" id="btnScanBAR_qc">Escanear SOLO BARRAS</button>
+          <button class="btn3" id="btnStop_qc" style="display:none;">Detener</button>
+          <div class="small" id="scanMsg_qc"></div>
+        </div>
+        
+        <div id="qrBox_qc" style="display:none; margin-top:10px;">
+          <div class="small" id="scanMode_qc" style="margin-bottom:8px;"></div>
+          <div id="qrReader_qc" class="qrReader"></div>
+          <div class="small" style="margin-top:8px;">
+            Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
+          </div>
+        </div>
+
         <div class="row">
           <label>VIN</label>
           <input id="qcVin" type="text" placeholder="VIN..." />
@@ -398,7 +431,8 @@
       const el = screens[name];
       if (el) el.classList.add("active");
       // al entrar al menú, apagamos cámara por seguridad
-      if (name !== "params") { try { stopScan(); } catch {} }
+      // al cambiar de pantalla apagamos TODOS los scanners (para que no se queden prendidos)
+      try { stopAllScanners(); } catch {}
     }
 
     $("goParams").onclick = () => showScreen("params");
@@ -409,11 +443,13 @@
       $("fallaDate").value = ($("dateStr")?.value || todayYYYYMMDD());
       showScreen("falla");
     };
-    $("goCalidad").onclick = () => {
-      const vin = $("vinText")?.value?.trim() || "";
-      if (vin) $("qcVin").value = vin;
-      showScreen("calidad");
-    };
+$("goCalidad").onclick = () => {
+  const vin = $("vinText")?.value?.trim() || "";
+  if (vin) $("qcVin").value = vin;
+  $("qcDate").value = ($("dateStr")?.value || todayYYYYMMDD());
+  showScreen("calidad");
+};
+
 
     document.addEventListener("click", (ev) => {
       const b = ev.target.closest("button");
@@ -801,103 +837,117 @@
     // =========================================================
     // ✅ SCANNER SEPARADO: SOLO QR  /  SOLO BARRAS
     // =========================================================
-    let qr = null;
 
-    function normalizeScanText(t){
-      return String(t || "")
-        .replace(/\s+/g, "")
-        .trim();
-    }
+// =========================================================
+// ✅ 3 SCANNERS INDEPENDIENTES (PARAMS / FALLA / CALIDAD)
+// =========================================================
+let qrParams = null;
+let qrFalla  = null;
+let qrQc     = null;
 
-    async function stopScan(){
-      if (qr) { try { await qr.stop(); } catch {} }
-      $("qrBox").style.display = "none";
-      $("btnStop").style.display = "none";
-      $("scanMode").textContent = "";
-    }
+function normalizeScanText(t){
+  return String(t || "").replace(/\s+/g, "").trim();
+}
 
-    async function startScanQR(){
-      await stopScan();
+async function stopScanner(which){
+  const map = {
+    params: { inst: () => qrParams, set: (v)=>qrParams=v, box:"qrBox_params", stop:"btnStop_params", mode:"scanMode_params" },
+    falla:  { inst: () => qrFalla,  set: (v)=>qrFalla=v,  box:"qrBox_falla",  stop:"btnStop_falla",  mode:"scanMode_falla"  },
+    qc:     { inst: () => qrQc,     set: (v)=>qrQc=v,     box:"qrBox_qc",     stop:"btnStop_qc",     mode:"scanMode_qc"     }
+  };
 
-      $("qrBox").style.display = "block";
-      $("btnStop").style.display = "inline-block";
-      $("scanMsg").textContent = "";
-      $("scanMode").textContent = "Modo: SOLO QR";
+  const m = map[which];
+  if (!m) return;
 
-      if (!qr) qr = new Html5Qrcode("qrReader");
+  const inst = m.inst();
+  if (inst) { try { await inst.stop(); } catch {} }
 
-      const config = {
-        fps: 12,
-        qrbox: { width: 280, height: 280 },
-        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
-      };
+  const boxEl = $(m.box);  if (boxEl) boxEl.style.display = "none";
+  const stopEl = $(m.stop); if (stopEl) stopEl.style.display = "none";
+  const modeEl = $(m.mode); if (modeEl) modeEl.textContent = "";
+}
 
-      try {
-        await qr.start(
-          { facingMode: "environment" },
-          config,
-          (decodedText) => {
-            const val = normalizeScanText(decodedText);
-            if (!val) return;
-            $("vinText").value = val;
-            $("scanMsg").textContent = "Detectado (QR): " + val;
-            refreshStatus();
-            stopScan();
-          },
-          () => {}
-        );
-      } catch (e) {
-        $("scanMsg").textContent = "Error cámara (QR): " + e;
-      }
-    }
+async function stopAllScanners(){
+  await stopScanner("params");
+  await stopScanner("falla");
+  await stopScanner("qc");
+}
 
-    async function startScanBAR(){
-      await stopScan();
+async function startScanner(which, mode){ // mode: "QR" | "BAR"
+  // apaga solo el que corresponde
+  await stopScanner(which);
 
-      $("qrBox").style.display = "block";
-      $("btnStop").style.display = "inline-block";
-      $("scanMsg").textContent = "";
-      $("scanMode").textContent = "Modo: SOLO BARRAS (CODE_128 y otros)";
+  const cfg = {
+    params: { readerId:"qrReader_params", box:"qrBox_params", stop:"btnStop_params", msg:"scanMsg_params", mode:"scanMode_params", setVin:(v)=>{$("vinText").value=v; refreshStatus();} , getInst:()=>qrParams, setInst:(v)=>qrParams=v },
+    falla:  { readerId:"qrReader_falla",  box:"qrBox_falla",  stop:"btnStop_falla",  msg:"scanMsg_falla",  mode:"scanMode_falla",  setVin:(v)=>{$("fallaVin").value=v;} ,                    getInst:()=>qrFalla,  setInst:(v)=>qrFalla=v  },
+    qc:     { readerId:"qrReader_qc",     box:"qrBox_qc",     stop:"btnStop_qc",     msg:"scanMsg_qc",     mode:"scanMode_qc",     setVin:(v)=>{$("qcVin").value=v;} ,                       getInst:()=>qrQc,     setInst:(v)=>qrQc=v     }
+  };
 
-      if (!qr) qr = new Html5Qrcode("qrReader");
+  const c = cfg[which];
+  if (!c) return;
 
-      const config = {
-        fps: 12,
-        qrbox: { width: 200, height: 360 },
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.CODABAR
-        ],
-      };
+  // muestra UI
+  $(c.box).style.display = "block";
+  $(c.stop).style.display = "inline-block";
+  $(c.msg).textContent = "";
+  $(c.mode).textContent = (mode === "QR") ? "Modo: SOLO QR" : "Modo: SOLO BARRAS (CODE_128 y otros)";
 
-      try {
-        await qr.start(
-          { facingMode: "environment" },
-          config,
-          (decodedText) => {
-            const val = normalizeScanText(decodedText);
-            if (!val) return;
-            $("vinText").value = val;
-            $("scanMsg").textContent = "Detectado (BARRAS): " + val;
-            refreshStatus();
-            stopScan();
-          },
-          () => {}
-        );
-      } catch (e) {
-        $("scanMsg").textContent = "Error cámara (BARRAS): " + e;
-      }
-    }
+  // crea instancia si no existe
+  if (!c.getInst()) c.setInst(new Html5Qrcode(c.readerId));
 
-    $("btnScanQR").onclick = startScanQR;
-    $("btnScanBAR").onclick = startScanBAR;
-    $("btnStop").onclick = stopScan;
+  const formats = (mode === "QR")
+    ? [ Html5QrcodeSupportedFormats.QR_CODE ]
+    : [
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.CODABAR
+      ];
+
+  const scanConfig = (mode === "QR")
+    ? { fps: 12, qrbox: { width: 280, height: 280 }, formatsToSupport: formats }
+    : { fps: 12, qrbox: { width: 200, height: 360 }, formatsToSupport: formats };
+
+  try {
+    await c.getInst().start(
+      { facingMode: "environment" },
+      scanConfig,
+      (decodedText) => {
+        const val = normalizeScanText(decodedText);
+        if (!val) return;
+
+        c.setVin(val);
+        $(c.msg).textContent = `Detectado (${mode === "QR" ? "QR" : "BARRAS"}): ${val}`;
+
+        // detener solo ese scanner
+        stopScanner(which);
+      },
+      () => {}
+    );
+  } catch (e) {
+    $(c.msg).textContent = `Error cámara (${mode}): ${e}`;
+  }
+}
+
+// ===== bindings PARAMS =====
+$("btnScanQR_params").onclick  = () => startScanner("params","QR");
+$("btnScanBAR_params").onclick = () => startScanner("params","BAR");
+$("btnStop_params").onclick    = () => stopScanner("params");
+
+// ===== bindings FALLA =====
+$("btnScanQR_falla").onclick   = () => startScanner("falla","QR");
+$("btnScanBAR_falla").onclick  = () => startScanner("falla","BAR");
+$("btnStop_falla").onclick     = () => stopScanner("falla");
+
+// ===== bindings CALIDAD =====
+$("btnScanQR_qc").onclick      = () => startScanner("qc","QR");
+$("btnScanBAR_qc").onclick     = () => startScanner("qc","BAR");
+$("btnStop_qc").onclick        = () => stopScanner("qc");
+
 
     // =========================
     // REGISTRAR FALLA (simple)
