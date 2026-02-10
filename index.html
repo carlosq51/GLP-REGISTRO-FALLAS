@@ -52,6 +52,34 @@
     .menuDesc{ margin:0; color:#555; font-size:13px; }
     .menuCard .btn{ width:100%; margin-top:10px; }
     textarea{ min-height: 90px; resize: vertical; }
+
+    /* ✅ BOTÓN PRINCIPAL: SUBIR FOTOS */
+    .btnPrimaryBig{
+      width: 100%;
+      max-width: 520px;
+      display: block;
+      margin: 18px auto 6px;
+      padding: 18px 18px;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .4px;
+      background: #12b76a; /* verde fácil de identificar */
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(18,183,106,.30);
+      transition: transform .08s ease, filter .12s ease;
+    }
+    
+    .btnPrimaryBig:active{
+      transform: scale(.99);
+      filter: brightness(.95);
+    }
+    
+    .btnPrimaryBig:disabled{
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
   </style>
 </head>
 <body>
@@ -68,26 +96,26 @@
     <div class="menuGrid">
       <div class="menuCard">
         <p class="menuTitle">Registrar parámetros</p>
-        <p class="menuDesc">Sube las 9 fotos (VIN, compresión x4, corrientes, voltaje, scan del carro) a Drive.</p>
+        <p class="menuDesc">Sube las 9 fotos (VIN, COMPRESIÓN, AMPERAJE, VOLTAJE, SCANNER).</p>
         <button class="btn" id="goParams">Entrar</button>
       </div>
 
       <div class="menuCard">
         <p class="menuTitle">Registrar falla</p>
-        <p class="menuDesc">Registra una falla con nota + múltiples imágenes (pantalla lista para conectar a tu APS).</p>
+        <p class="menuDesc">Registra una falla con nota.</p>
         <button class="btn" id="goFalla">Entrar</button>
       </div>
 
       <div class="menuCard">
         <p class="menuTitle">Control calidad</p>
-        <p class="menuDesc">Pantalla de control de calidad (placeholder por ahora).</p>
+        <p class="menuDesc">Pantalla de control de calidad.</p>
         <button class="btn" id="goCalidad">Entrar</button>
       </div>
     </div>
 
     <div class="box" style="margin-top:14px;">
       <div class="small">
-        Tip: Este menú es solo una “capa” arriba. Tu lógica original vive completa dentro de <b>Registrar parámetros</b>.
+        
       </div>
     </div>
   </section>
@@ -104,8 +132,8 @@
     <!-- ======= TU HTML ORIGINAL (casi intacto) ======= -->
     <div class="box">
      <div class="row">
-        <button class="btn" id="btnScanQR_params">Escanear SOLO QR</button>
-        <button class="btn" id="btnScanBAR_params">Escanear SOLO BARRAS</button>
+        <button class="btn" id="btnScanQR_params">Escanear QR</button>
+        <button class="btn" id="btnScanBAR_params">Escanear CODIGO BARRAS</button>
         <button class="btn3" id="btnStop_params" style="display:none;">Detener</button>
         <div class="small" id="scanMsg_params"></div>
       </div>
@@ -128,7 +156,6 @@
         <label>Fecha (YYYY-MM-DD)</label>
         <input id="dateStr" type="date" />
         <div class="small">Si no eliges fecha, usa la de hoy.</div>
-        <div class="small"><b>Tip:</b> aquí se comprime antes de subir (más rápido).</div>
       </div>
 
       <div class="row">
@@ -263,7 +290,7 @@
     </div>
 
     <div class="row">
-      <button class="btn2" id="btnUpload">SUBIR FOTOS SELECCIONADAS A DRIVE</button>
+      <button class="btnPrimaryBig" id="btnUpload">⬆️ SUBIR FOTOS</button>
     </div>
 
     <h3>Estado colaborativo</h3>
