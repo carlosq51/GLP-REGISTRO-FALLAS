@@ -69,19 +69,44 @@
       box-shadow: 0 10px 24px rgba(18,183,106,.30);
       transition: transform .08s ease, filter .12s ease;
     }
-    
-    .btnPrimaryBig:active{
-      transform: scale(.99);
-      filter: brightness(.95);
-    }
-    
-    .btnPrimaryBig:disabled{
-      opacity: .55;
-      cursor: not-allowed;
-    }
+    .btnPrimaryBig:active{ transform: scale(.99); filter: brightness(.95); }
+    .btnPrimaryBig:disabled{ opacity: .55; cursor: not-allowed; }
 
+    /* ✅ MODAL IMAGEN FULLSCREEN */
+    .imgModal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 9999;
+    }
+    .imgModal.open{ display:flex; }
+    .imgModal img{
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 14px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+    }
+    .imgModalClose{
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,.22);
+      cursor: pointer;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- =========================
@@ -114,14 +139,12 @@
     </div>
 
     <div class="box" style="margin-top:14px;">
-      <div class="small">
-        
-      </div>
+      <div class="small"></div>
     </div>
   </section>
 
   <!-- =========================
-       PANTALLA 1: REGISTRAR PARÁMETROS (TU CÓDIGO)
+       PANTALLA 1: REGISTRAR PARÁMETROS
        ========================= -->
   <section id="screenParams" class="screen">
     <div class="topbar">
@@ -129,15 +152,14 @@
       <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
     </div>
 
-    <!-- ======= TU HTML ORIGINAL (casi intacto) ======= -->
     <div class="box">
-     <div class="row">
+      <div class="row">
         <button class="btn" id="btnScanQR_params">Escanear QR</button>
         <button class="btn" id="btnScanBAR_params">Escanear CODIGO BARRAS</button>
         <button class="btn3" id="btnStop_params" style="display:none;">Detener</button>
         <div class="small" id="scanMsg_params"></div>
       </div>
-      
+
       <div id="qrBox_params" style="display:none; margin-top:10px;">
         <div class="small" id="scanMode_params" style="margin-bottom:8px;"></div>
         <div id="qrReader_params" class="qrReader"></div>
@@ -145,7 +167,6 @@
           Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
         </div>
       </div>
-
 
       <div class="row">
         <label>VIN (texto)</label>
@@ -166,14 +187,13 @@
     <h3>Fotos (9) — se guardan en Drive</h3>
 
     <div class="box grid">
-
       <!-- 1) VIN -->
       <div class="slotCard" data-slot="vin">
         <label>1) Foto del VIN</label>
 
-        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
-        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file" multiple>
-
+        <!-- ✅ IDs CORRECTOS (no duplicados) -->
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="vin_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="vin_file">
 
         <div class="slotActions">
           <button class="btn3" type="button" data-pick="cam" data-slot="vin">📷 Tomar foto</button>
@@ -187,12 +207,13 @@
         </div>
       </div>
 
-      <!-- 2) COMPRESIÓN: 4 fotos APILADAS 4->3->2->1 -->
+      <!-- 2) COMPRESIÓN: 4 fotos -->
       <div class="slotCard" data-slot="comp">
         <label>2) Compresión (toma 4 fotos)</label>
 
         <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
-        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file">
+        <!-- ✅ multiple para seleccionar varias desde archivos -->
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file" multiple>
 
         <div class="slotActions">
           <button class="btn3" type="button" data-pick="cam" data-slot="comp">📷 Tomar foto (agrega)</button>
@@ -287,7 +308,6 @@
           <div class="miniInfo" id="scan_carro_meta">Ningún archivo seleccionado.</div>
         </div>
       </div>
-
     </div>
 
     <div class="row">
@@ -308,14 +328,13 @@
     </div>
 
     <div class="box">
-
       <div class="row">
         <button class="btn" id="btnScanQR_falla">Escanear SOLO QR</button>
         <button class="btn" id="btnScanBAR_falla">Escanear SOLO BARRAS</button>
         <button class="btn3" id="btnStop_falla" style="display:none;">Detener</button>
         <div class="small" id="scanMsg_falla"></div>
       </div>
-      
+
       <div id="qrBox_falla" style="display:none; margin-top:10px;">
         <div class="small" id="scanMode_falla" style="margin-bottom:8px;"></div>
         <div id="qrReader_falla" class="qrReader"></div>
@@ -324,7 +343,6 @@
         </div>
       </div>
 
-      
       <div class="row">
         <label>VIN</label>
         <input id="fallaVin" type="text" placeholder="Escribe o pega VIN..." />
@@ -343,20 +361,19 @@
 
       <div class="row">
         <label>Fotos de falla (sin límite)</label>
-      
+
         <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="falla_cam">
         <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="falla_file" multiple>
-      
+
         <div class="slotActions">
           <button class="btn3" type="button" id="btnFallaCam">📷 Tomar foto (agrega)</button>
           <button class="btn3" type="button" id="btnFallaFile">🖼️ Subir archivo(s) (agrega)</button>
           <button class="btn3" type="button" id="btnFallaClear">🧹 Quitar todas</button>
         </div>
-      
+
         <div class="grid" id="fallaGrid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;"></div>
         <div class="small" id="fallaFotosMeta">0 archivo(s).</div>
       </div>
-
 
       <div class="row">
         <button class="btn2" id="btnEnviarFalla">ENVIAR FALLA</button>
@@ -374,75 +391,114 @@
   <!-- =========================
        PANTALLA 3: CONTROL CALIDAD
        ========================= -->
+  <section id="screenCalidad" class="screen">
+    <div class="topbar">
+      <h2>Control calidad</h2>
+      <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
+    </div>
 
-      <section id="screenCalidad" class="screen">
-      <div class="topbar">
-        <h2>Control calidad</h2>
-        <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
+    <div class="box">
+      <div class="row">
+        <button class="btn" id="btnScanQR_qc">Escanear SOLO QR</button>
+        <button class="btn" id="btnScanBAR_qc">Escanear SOLO BARRAS</button>
+        <button class="btn3" id="btnStop_qc" style="display:none;">Detener</button>
+        <div class="small" id="scanMsg_qc"></div>
       </div>
-    
-      <div class="box">
 
-        <div class="row">
-          <button class="btn" id="btnScanQR_qc">Escanear SOLO QR</button>
-          <button class="btn" id="btnScanBAR_qc">Escanear SOLO BARRAS</button>
-          <button class="btn3" id="btnStop_qc" style="display:none;">Detener</button>
-          <div class="small" id="scanMsg_qc"></div>
-        </div>
-        
-        <div id="qrBox_qc" style="display:none; margin-top:10px;">
-          <div class="small" id="scanMode_qc" style="margin-bottom:8px;"></div>
-          <div id="qrReader_qc" class="qrReader"></div>
-          <div class="small" style="margin-top:8px;">
-            Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
-          </div>
-        </div>
-
-        <div class="row">
-          <label>VIN</label>
-          <input id="qcVin" type="text" placeholder="VIN..." />
-        </div>
-    
-        <div class="row">
-          <label>Fecha</label>
-          <input id="qcDate" type="date" />
-        </div>
-    
-        <div class="slotCard" style="margin-top:10px;">
-          <label>Fotos de Calidad (mín 3, máx 4)</label>
-    
-          <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="qc_cam">
-          <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="qc_file">
-    
-          <div class="slotActions">
-            <button class="btn3" type="button" id="btnQcCam">📷 Tomar foto (agrega)</button>
-            <button class="btn3" type="button" id="btnQcFile">🖼️ Subir archivo (agrega)</button>
-            <button class="btn3" type="button" id="btnQcClear">🧹 Quitar todas</button>
-          </div>
-    
-          <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;">
-            <div class="thumb" id="qc_p1"><span class="small">1</span></div>
-            <div class="thumb" id="qc_p2"><span class="small">2</span></div>
-            <div class="thumb" id="qc_p3"><span class="small">3</span></div>
-            <div class="thumb" id="qc_p4"><span class="small">4</span></div>
-          </div>
-    
-          <div class="miniInfo" id="qc_meta" style="margin-top:10px;">0/4 seleccionadas.</div>
-        </div>
-    
-        <div class="row">
-          <button class="btn2" id="btnQcUpload">SUBIR CALIDAD</button>
+      <div id="qrBox_qc" style="display:none; margin-top:10px;">
+        <div class="small" id="scanMode_qc" style="margin-bottom:8px;"></div>
+        <div id="qrReader_qc" class="qrReader"></div>
+        <div class="small" style="margin-top:8px;">
+          Tip: en BARRAS apunta con buena luz y ocupa casi todo el ancho del recuadro.
         </div>
       </div>
-    
-      <div id="outQc" class="status">Listo.</div>
-    </section>
 
+      <div class="row">
+        <label>VIN</label>
+        <input id="qcVin" type="text" placeholder="VIN..." />
+      </div>
+
+      <div class="row">
+        <label>Fecha</label>
+        <input id="qcDate" type="date" />
+      </div>
+
+      <div class="slotCard" style="margin-top:10px;">
+        <label>Fotos de Calidad (mín 3, máx 4)</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="qc_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="qc_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" id="btnQcCam">📷 Tomar foto (agrega)</button>
+          <button class="btn3" type="button" id="btnQcFile">🖼️ Subir archivo (agrega)</button>
+          <button class="btn3" type="button" id="btnQcClear">🧹 Quitar todas</button>
+        </div>
+
+        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;">
+          <div class="thumb" id="qc_p1"><span class="small">1</span></div>
+          <div class="thumb" id="qc_p2"><span class="small">2</span></div>
+          <div class="thumb" id="qc_p3"><span class="small">3</span></div>
+          <div class="thumb" id="qc_p4"><span class="small">4</span></div>
+        </div>
+
+        <div class="miniInfo" id="qc_meta" style="margin-top:10px;">0/4 seleccionadas.</div>
+      </div>
+
+      <div class="row">
+        <button class="btn2" id="btnQcUpload">SUBIR CALIDAD</button>
+      </div>
+    </div>
+
+    <div id="outQc" class="status">Listo.</div>
+  </section>
+
+  <!-- ✅ VISOR FULLSCREEN (LIGHTBOX) -->
+  <div id="imgModal" class="imgModal" aria-hidden="true">
+    <button type="button" class="imgModalClose" id="imgModalClose">✕</button>
+    <img id="imgModalImg" alt="Vista completa" />
+  </div>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
     const APS_URL = "https://script.google.com/macros/s/AKfycbw8WdoYVKGU9ztmHv81c-GzcUxpaCdMn5mvk5XgqJQ7kicbivdr6DFRIgTEOq_nIUMV/exec";
     const $ = (id) => document.getElementById(id);
+
+    // ✅ LIGHTBOX FULLSCREEN (sirve para previews locales y de Drive)
+    const imgModal = $("imgModal");
+    const imgModalImg = $("imgModalImg");
+    const imgModalClose = $("imgModalClose");
+
+    function openImageModal(src){
+      if (!imgModal || !imgModalImg || !src) return;
+      imgModalImg.src = src;
+      imgModal.classList.add("open");
+      imgModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeImageModal(){
+      if (!imgModal || !imgModalImg) return;
+      imgModal.classList.remove("open");
+      imgModalImg.src = "";
+      imgModal.setAttribute("aria-hidden", "true");
+    }
+
+    if (imgModal) {
+      imgModal.addEventListener("click", (e) => {
+        if (e.target === imgModal) closeImageModal();
+      });
+    }
+    if (imgModalClose) imgModalClose.onclick = closeImageModal;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeImageModal();
+    });
+
+    document.addEventListener("click", (e) => {
+      const img = e.target && e.target.closest && e.target.closest(".thumb img");
+      if (!img) return;
+      openImageModal(img.currentSrc || img.src);
+    });
 
     // =========================
     // ✅ NAV ENTRE PANTALLAS
@@ -458,26 +514,22 @@
       Object.values(screens).forEach(s => s.classList.remove("active"));
       const el = screens[name];
       if (el) el.classList.add("active");
-      // al entrar al menú, apagamos cámara por seguridad
-      // al cambiar de pantalla apagamos TODOS los scanners (para que no se queden prendidos)
       try { stopAllScanners(); } catch {}
     }
 
     $("goParams").onclick = () => showScreen("params");
     $("goFalla").onclick  = () => {
-      // precargar VIN/fecha si ya estaban en params
       const vin = $("vinText")?.value?.trim() || "";
       if (vin) $("fallaVin").value = vin;
       $("fallaDate").value = ($("dateStr")?.value || todayYYYYMMDD());
       showScreen("falla");
     };
-$("goCalidad").onclick = () => {
-  const vin = $("vinText")?.value?.trim() || "";
-  if (vin) $("qcVin").value = vin;
-  $("qcDate").value = ($("dateStr")?.value || todayYYYYMMDD());
-  showScreen("calidad");
-};
-
+    $("goCalidad").onclick = () => {
+      const vin = $("vinText")?.value?.trim() || "";
+      if (vin) $("qcVin").value = vin;
+      $("qcDate").value = ($("dateStr")?.value || todayYYYYMMDD());
+      showScreen("calidad");
+    };
 
     document.addEventListener("click", (ev) => {
       const b = ev.target.closest("button");
@@ -649,29 +701,22 @@ $("goCalidad").onclick = () => {
     function onPickCompCam(fileList){
       const f = (fileList && fileList[0]) ? fileList[0] : null;
       if (!f) return;
-      addCompOne(f);          // entra al 4 y empuja atrás
+      addCompOne(f);
       $("comp_cam").value = "";
     }
-    
+
     function onPickCompFiles(fileList){
       const arr = Array.from(fileList || []);
       if (!arr.length) return;
-    
-      // si eligieron más de 4, tomamos las últimas 4
       const take = arr.slice(-4);
-    
-      // agrega en secuencia (entra al 4 y empuja atrás)
       for (const f of take) addCompOne(f);
-    
       $("comp_file").value = "";
     }
-
 
     (function wireComp(){
       clearComp();
       $("comp_cam").addEventListener("change", (e) => onPickCompCam(e.target.files));
       $("comp_file").addEventListener("change", (e) => onPickCompFiles(e.target.files));
-
     })();
 
     // ====== STATUS ======
@@ -877,145 +922,132 @@ $("goCalidad").onclick = () => {
     ["vin","corr_pre","corr_post","voltaje","scan_carro"].forEach(wireInput);
 
     // =========================================================
-    // ✅ SCANNER SEPARADO: SOLO QR  /  SOLO BARRAS
+    // ✅ 3 SCANNERS INDEPENDIENTES (PARAMS / FALLA / CALIDAD)
     // =========================================================
+    let qrParams = null;
+    let qrFalla  = null;
+    let qrQc     = null;
 
-// =========================================================
-// ✅ 3 SCANNERS INDEPENDIENTES (PARAMS / FALLA / CALIDAD)
-// =========================================================
-let qrParams = null;
-let qrFalla  = null;
-let qrQc     = null;
+    function normalizeScanText(t){
+      return String(t || "").replace(/\s+/g, "").trim();
+    }
 
-function normalizeScanText(t){
-  return String(t || "").replace(/\s+/g, "").trim();
-}
+    async function stopScanner(which){
+      const map = {
+        params: { inst: () => qrParams, box:"qrBox_params", stop:"btnStop_params", mode:"scanMode_params" },
+        falla:  { inst: () => qrFalla,  box:"qrBox_falla",  stop:"btnStop_falla",  mode:"scanMode_falla"  },
+        qc:     { inst: () => qrQc,     box:"qrBox_qc",     stop:"btnStop_qc",     mode:"scanMode_qc"     }
+      };
 
-async function stopScanner(which){
-  const map = {
-    params: { inst: () => qrParams, set: (v)=>qrParams=v, box:"qrBox_params", stop:"btnStop_params", mode:"scanMode_params" },
-    falla:  { inst: () => qrFalla,  set: (v)=>qrFalla=v,  box:"qrBox_falla",  stop:"btnStop_falla",  mode:"scanMode_falla"  },
-    qc:     { inst: () => qrQc,     set: (v)=>qrQc=v,     box:"qrBox_qc",     stop:"btnStop_qc",     mode:"scanMode_qc"     }
-  };
+      const m = map[which];
+      if (!m) return;
 
-  const m = map[which];
-  if (!m) return;
+      const inst = m.inst();
+      if (inst) { try { await inst.stop(); } catch {} }
 
-  const inst = m.inst();
-  if (inst) { try { await inst.stop(); } catch {} }
+      const boxEl  = $(m.box);  if (boxEl) boxEl.style.display = "none";
+      const stopEl = $(m.stop); if (stopEl) stopEl.style.display = "none";
+      const modeEl = $(m.mode); if (modeEl) modeEl.textContent = "";
+    }
 
-  const boxEl = $(m.box);  if (boxEl) boxEl.style.display = "none";
-  const stopEl = $(m.stop); if (stopEl) stopEl.style.display = "none";
-  const modeEl = $(m.mode); if (modeEl) modeEl.textContent = "";
-}
+    async function stopAllScanners(){
+      await stopScanner("params");
+      await stopScanner("falla");
+      await stopScanner("qc");
+    }
 
-async function stopAllScanners(){
-  await stopScanner("params");
-  await stopScanner("falla");
-  await stopScanner("qc");
-}
+    async function startScanner(which, mode){
+      await stopScanner(which);
 
-async function startScanner(which, mode){ // mode: "QR" | "BAR"
-  // apaga solo el que corresponde
-  await stopScanner(which);
+      const cfg = {
+        params: { readerId:"qrReader_params", box:"qrBox_params", stop:"btnStop_params", msg:"scanMsg_params", mode:"scanMode_params",
+                  setVin:(v)=>{$("vinText").value=v; refreshStatus();}, getInst:()=>qrParams, setInst:(v)=>qrParams=v },
+        falla:  { readerId:"qrReader_falla",  box:"qrBox_falla",  stop:"btnStop_falla",  msg:"scanMsg_falla",  mode:"scanMode_falla",
+                  setVin:(v)=>{$("fallaVin").value=v;}, getInst:()=>qrFalla,  setInst:(v)=>qrFalla=v  },
+        qc:     { readerId:"qrReader_qc",     box:"qrBox_qc",     stop:"btnStop_qc",     msg:"scanMsg_qc",     mode:"scanMode_qc",
+                  setVin:(v)=>{$("qcVin").value=v;}, getInst:()=>qrQc,     setInst:(v)=>qrQc=v     }
+      };
 
-  const cfg = {
-    params: { readerId:"qrReader_params", box:"qrBox_params", stop:"btnStop_params", msg:"scanMsg_params", mode:"scanMode_params", setVin:(v)=>{$("vinText").value=v; refreshStatus();} , getInst:()=>qrParams, setInst:(v)=>qrParams=v },
-    falla:  { readerId:"qrReader_falla",  box:"qrBox_falla",  stop:"btnStop_falla",  msg:"scanMsg_falla",  mode:"scanMode_falla",  setVin:(v)=>{$("fallaVin").value=v;} ,                    getInst:()=>qrFalla,  setInst:(v)=>qrFalla=v  },
-    qc:     { readerId:"qrReader_qc",     box:"qrBox_qc",     stop:"btnStop_qc",     msg:"scanMsg_qc",     mode:"scanMode_qc",     setVin:(v)=>{$("qcVin").value=v;} ,                       getInst:()=>qrQc,     setInst:(v)=>qrQc=v     }
-  };
+      const c = cfg[which];
+      if (!c) return;
 
-  const c = cfg[which];
-  if (!c) return;
+      $(c.box).style.display = "block";
+      $(c.stop).style.display = "inline-block";
+      $(c.msg).textContent = "";
+      $(c.mode).textContent = (mode === "QR") ? "Modo: SOLO QR" : "Modo: SOLO BARRAS (CODE_128 y otros)";
 
-  // muestra UI
-  $(c.box).style.display = "block";
-  $(c.stop).style.display = "inline-block";
-  $(c.msg).textContent = "";
-  $(c.mode).textContent = (mode === "QR") ? "Modo: SOLO QR" : "Modo: SOLO BARRAS (CODE_128 y otros)";
+      if (!c.getInst()) c.setInst(new Html5Qrcode(c.readerId));
 
-  // crea instancia si no existe
-  if (!c.getInst()) c.setInst(new Html5Qrcode(c.readerId));
+      const formats = (mode === "QR")
+        ? [ Html5QrcodeSupportedFormats.QR_CODE ]
+        : [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.CODABAR
+          ];
 
-  const formats = (mode === "QR")
-    ? [ Html5QrcodeSupportedFormats.QR_CODE ]
-    : [
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.ITF,
-        Html5QrcodeSupportedFormats.CODABAR
-      ];
+      const scanConfig = (mode === "QR")
+        ? { fps: 12, qrbox: { width: 280, height: 280 }, formatsToSupport: formats }
+        : { fps: 12, qrbox: { width: 200, height: 360 }, formatsToSupport: formats };
 
-  const scanConfig = (mode === "QR")
-    ? { fps: 12, qrbox: { width: 280, height: 280 }, formatsToSupport: formats }
-    : { fps: 12, qrbox: { width: 200, height: 360 }, formatsToSupport: formats };
+      try {
+        await c.getInst().start(
+          { facingMode: "environment" },
+          scanConfig,
+          (decodedText) => {
+            const val = normalizeScanText(decodedText);
+            if (!val) return;
 
-  try {
-    await c.getInst().start(
-      { facingMode: "environment" },
-      scanConfig,
-      (decodedText) => {
-        const val = normalizeScanText(decodedText);
-        if (!val) return;
+            c.setVin(val);
+            $(c.msg).textContent = `Detectado (${mode === "QR" ? "QR" : "BARRAS"}): ${val}`;
+            stopScanner(which);
+          },
+          () => {}
+        );
+      } catch (e) {
+        $(c.msg).textContent = `Error cámara (${mode}): ${e}`;
+      }
+    }
 
-        c.setVin(val);
-        $(c.msg).textContent = `Detectado (${mode === "QR" ? "QR" : "BARRAS"}): ${val}`;
+    $("btnScanQR_params").onclick  = () => startScanner("params","QR");
+    $("btnScanBAR_params").onclick = () => startScanner("params","BAR");
+    $("btnStop_params").onclick    = () => stopScanner("params");
 
-        // detener solo ese scanner
-        stopScanner(which);
-      },
-      () => {}
-    );
-  } catch (e) {
-    $(c.msg).textContent = `Error cámara (${mode}): ${e}`;
-  }
-}
+    $("btnScanQR_falla").onclick   = () => startScanner("falla","QR");
+    $("btnScanBAR_falla").onclick  = () => startScanner("falla","BAR");
+    $("btnStop_falla").onclick     = () => stopScanner("falla");
 
-// ===== bindings PARAMS =====
-$("btnScanQR_params").onclick  = () => startScanner("params","QR");
-$("btnScanBAR_params").onclick = () => startScanner("params","BAR");
-$("btnStop_params").onclick    = () => stopScanner("params");
-
-// ===== bindings FALLA =====
-$("btnScanQR_falla").onclick   = () => startScanner("falla","QR");
-$("btnScanBAR_falla").onclick  = () => startScanner("falla","BAR");
-$("btnStop_falla").onclick     = () => stopScanner("falla");
-
-// ===== bindings CALIDAD =====
-$("btnScanQR_qc").onclick      = () => startScanner("qc","QR");
-$("btnScanBAR_qc").onclick     = () => startScanner("qc","BAR");
-$("btnStop_qc").onclick        = () => stopScanner("qc");
-
+    $("btnScanQR_qc").onclick      = () => startScanner("qc","QR");
+    $("btnScanBAR_qc").onclick     = () => startScanner("qc","BAR");
+    $("btnStop_qc").onclick        = () => stopScanner("qc");
 
     // =========================
-    // REGISTRAR FALLA (simple)
+    // FALLAS: lista dinámica
     // =========================
+    let fallaFiles = [];
 
-    // ====== FALLAS: lista dinámica de fotos (sin límite) ======
-    let fallaFiles = []; // array de File
-    
     function renderFalla(){
       const grid = $("fallaGrid");
       if (!grid) return;
-    
+
       grid.innerHTML = "";
-    
+
       fallaFiles.forEach((f, idx) => {
         const url = URL.createObjectURL(f);
-    
+
         const wrap = document.createElement("div");
         wrap.style.position = "relative";
-    
+
         const thumb = document.createElement("div");
         thumb.className = "thumb";
         thumb.innerHTML = `<img alt="falla" src="${url}">`;
         wrap.appendChild(thumb);
-    
-        // botón quitar
+
         const x = document.createElement("button");
         x.type = "button";
         x.textContent = "✖";
@@ -1030,88 +1062,73 @@ $("btnStop_qc").onclick        = () => stopScanner("qc");
           renderFalla();
         };
         wrap.appendChild(x);
-    
+
         grid.appendChild(wrap);
-    
+
         setTimeout(() => URL.revokeObjectURL(url), 15000);
       });
-    
+
       const total = fallaFiles.reduce((a,f)=>a+(f.size||0),0);
       $("fallaFotosMeta").textContent = `${fallaFiles.length} archivo(s) • ${humanBytes(total)}`;
     }
-    
+
     function addFallaFiles(fileList){
       const arr = Array.from(fileList || []);
       if (!arr.length) return;
       fallaFiles.push(...arr);
       renderFalla();
     }
-    
-    // botones
-    $("btnFallaCam").onclick = () => $("falla_cam").click();
-    $("btnFallaFile").onclick = () => $("falla_file").click();
-    $("btnFallaClear").onclick = () => { fallaFiles = []; renderFalla(); };
-    
-    // inputs
-    $("falla_cam").addEventListener("change", (e) => {
-      addFallaFiles(e.target.files);
-      e.target.value = "";
-    });
-    $("falla_file").addEventListener("change", (e) => {
-      addFallaFiles(e.target.files);
-      e.target.value = "";
-    });
-    
-    // init
-    renderFalla();
 
+    $("btnFallaCam").onclick   = () => $("falla_cam").click();
+    $("btnFallaFile").onclick  = () => $("falla_file").click();
+    $("btnFallaClear").onclick = () => { fallaFiles = []; renderFalla(); };
+
+    $("falla_cam").addEventListener("change", (e) => { addFallaFiles(e.target.files); e.target.value = ""; });
+    $("falla_file").addEventListener("change", (e) => { addFallaFiles(e.target.files); e.target.value = ""; });
+
+    renderFalla();
 
     $("btnEnviarFalla").onclick = async () => {
       const vin = $("fallaVin").value.trim();
       const dateStr = ($("fallaDate").value || todayYYYYMMDD());
       const note = ($("fallaNota").value || "").trim();
-    
+
       if (!vin) { $("outFalla").textContent = "❌ Falta VIN."; return; }
       if (!note && fallaFiles.length === 0) { $("outFalla").textContent = "⚠️ Agrega una nota o al menos una foto."; return; }
-    
+
       $("outFalla").textContent = `Preparando ${fallaFiles.length} foto(s)...\n`;
-    
+
       const files = [];
       for (let i = 0; i < fallaFiles.length; i++){
         $("outFalla").textContent = `Preparando foto ${i+1}/${fallaFiles.length}...\n`;
         const b64 = await fileToB64Compressed(fallaFiles[i]);
         files.push({ slot: "falla", mimeType: "image/jpeg", b64 });
       }
-    
+
       $("outFalla").textContent = `Subiendo FALLA (${files.length} foto(s) + nota)...\n`;
       const j = await callAPS({ action: "uploadFalla", vin, dateStr, note, files });
       if (!j.ok) { $("outFalla").textContent = "❌ uploadFalla: " + j.error; return; }
-    
+
       $("outFalla").textContent =
         `✅ Falla registrada.\n` +
         `Carpeta: ${j.carFolderName}/FALLAS\n` +
         `Batch: ${j.batchId}\n` +
         `Guardados: ${j.savedCount}`;
-    
+
       fallaFiles = [];
       renderFalla();
     };
-
-
-    // =========================
-    // CONTROL CALIDAD (demo)
-    // =========================
 
     // =========================
     // CONTROL CALIDAD (3 a 4 fotos)
     // =========================
     let qcFiles = [null, null, null, null];
-    
+
     (function initQcDate(){
       const qcDate = $("qcDate");
       if (qcDate) qcDate.value = todayYYYYMMDD();
     })();
-    
+
     function clearQc(){
       qcFiles = [null, null, null, null];
       ["qc_p1","qc_p2","qc_p3","qc_p4"].forEach((id, idx) => {
@@ -1122,7 +1139,7 @@ $("btnStop_qc").onclick        = () => stopScanner("qc");
       if ($("qc_cam")) $("qc_cam").value = "";
       if ($("qc_file")) $("qc_file").value = "";
     }
-    
+
     function renderQc(){
       const ids = ["qc_p1","qc_p2","qc_p3","qc_p4"];
       ids.forEach((id, idx) => {
@@ -1137,47 +1154,45 @@ $("btnStop_qc").onclick        = () => stopScanner("qc");
         box.innerHTML = `<img alt="qc" src="${url}">`;
         setTimeout(() => URL.revokeObjectURL(url), 15000);
       });
-    
+
       const chosen = qcFiles.filter(Boolean);
       const total = chosen.reduce((a,f)=>a+(f.size||0),0);
       $("qc_meta").textContent = `${chosen.length}/4 seleccionadas • ${humanBytes(total)} (mín 3)`;
     }
-    
+
     function addQcOne(file){
       if (!file) return;
-      // entra al 4 y empuja atrás (igual compresión)
       qcFiles[0] = qcFiles[1];
       qcFiles[1] = qcFiles[2];
       qcFiles[2] = qcFiles[3];
       qcFiles[3] = file;
       renderQc();
     }
-    
+
     function onPickQc(e){
       const f = e.target && e.target.files && e.target.files[0];
       if (!f) return;
       addQcOne(f);
       e.target.value = "";
     }
-    
-    $("btnQcCam").onclick = () => $("qc_cam").click();
-    $("btnQcFile").onclick = () => $("qc_file").click();
+
+    $("btnQcCam").onclick   = () => $("qc_cam").click();
+    $("btnQcFile").onclick  = () => $("qc_file").click();
     $("btnQcClear").onclick = clearQc;
-    
+
     $("qc_cam").addEventListener("change", onPickQc);
     $("qc_file").addEventListener("change", onPickQc);
-    
-    // init
+
     clearQc();
-    
+
     $("btnQcUpload").onclick = async () => {
       const vin = $("qcVin").value.trim();
       const dateStr = ($("qcDate").value || todayYYYYMMDD());
       if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
-    
+
       const chosen = qcFiles.filter(Boolean);
       if (chosen.length < 3) { $("outQc").textContent = "⚠️ Debes subir mínimo 3 fotos de calidad."; return; }
-    
+
       const files = [];
       for (let i = 0; i < 4; i++){
         const f = qcFiles[i];
@@ -1187,20 +1202,18 @@ $("btnStop_qc").onclick        = () => stopScanner("qc");
         const b64 = await fileToB64Compressed(f);
         files.push({ slot, mimeType: "image/jpeg", b64 });
       }
-    
+
       $("outQc").textContent = `Subiendo CALIDAD (${files.length} foto(s))...\n`;
       const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
       if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
-    
+
       $("outQc").textContent =
         `✅ Calidad registrada.\n` +
         `Carpeta: ${j.carFolderName}/CALIDAD\n` +
         `Guardados: ${j.saved.length}`;
-    
+
       clearQc();
     };
-
-    
   </script>
 
 </body>
