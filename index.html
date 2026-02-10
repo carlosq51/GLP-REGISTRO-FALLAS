@@ -171,8 +171,9 @@
       <div class="slotCard" data-slot="vin">
         <label>1) Foto del VIN</label>
 
-        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="vin_cam">
-        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="vin_file">
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file" multiple>
+
 
         <div class="slotActions">
           <button class="btn3" type="button" data-pick="cam" data-slot="vin">📷 Tomar foto</button>
@@ -645,18 +646,32 @@ $("goCalidad").onclick = () => {
       renderCompPreviews();
     }
 
-    function onPickCompOne(fileList){
+    function onPickCompCam(fileList){
       const f = (fileList && fileList[0]) ? fileList[0] : null;
       if (!f) return;
-      addCompOne(f);
+      addCompOne(f);          // entra al 4 y empuja atrás
       $("comp_cam").value = "";
+    }
+    
+    function onPickCompFiles(fileList){
+      const arr = Array.from(fileList || []);
+      if (!arr.length) return;
+    
+      // si eligieron más de 4, tomamos las últimas 4
+      const take = arr.slice(-4);
+    
+      // agrega en secuencia (entra al 4 y empuja atrás)
+      for (const f of take) addCompOne(f);
+    
       $("comp_file").value = "";
     }
 
+
     (function wireComp(){
       clearComp();
-      $("comp_cam").addEventListener("change", (e) => onPickCompOne(e.target.files));
-      $("comp_file").addEventListener("change", (e) => onPickCompOne(e.target.files));
+      $("comp_cam").addEventListener("change", (e) => onPickCompCam(e.target.files));
+      $("comp_file").addEventListener("change", (e) => onPickCompFiles(e.target.files));
+
     })();
 
     // ====== STATUS ======
