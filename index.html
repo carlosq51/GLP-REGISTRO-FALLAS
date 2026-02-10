@@ -427,7 +427,7 @@
         <label>Fotos de Calidad (mín 3, máx 4)</label>
 
         <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="qc_cam">
-        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="qc_file">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="qc_file" multiple>
 
         <div class="slotActions">
           <button class="btn3" type="button" id="btnQcCam">📷 Tomar foto (agrega)</button>
@@ -446,7 +446,7 @@
       </div>
 
       <div class="row">
-        <button class="btn2" id="btnQcUpload">SUBIR CALIDAD</button>
+        <button class="btnPrimaryBig" id="btnQcUpload">⬆️ ENVIAR CALIDAD</button>
       </div>
     </div>
 
@@ -1122,88 +1122,129 @@
     // =========================
     // CONTROL CALIDAD (3 a 4 fotos)
     // =========================
-    let qcFiles = [null, null, null, null];
 
-    (function initQcDate(){
-      const qcDate = $("qcDate");
-      if (qcDate) qcDate.value = todayYYYYMMDD();
-    })();
+    // =========================
+// ✅ CONTROL CALIDAD (mín 3, máx 4) + MULTI-SELECT + LIGHTBOX OK
+// =========================
+let qcFiles = [null, null, null, null];
 
-    function clearQc(){
-      qcFiles = [null, null, null, null];
-      ["qc_p1","qc_p2","qc_p3","qc_p4"].forEach((id, idx) => {
-        const box = $(id);
-        if (box) box.innerHTML = `<span class="small">${idx+1}</span>`;
-      });
-      if ($("qc_meta")) $("qc_meta").textContent = "0/4 seleccionadas.";
-      if ($("qc_cam")) $("qc_cam").value = "";
-      if ($("qc_file")) $("qc_file").value = "";
+(function initQcDate(){
+  const qcDate = $("qcDate");
+  if (qcDate) qcDate.value = todayYYYYMMDD();
+})();
+
+function clearQc(){
+  qcFiles = [null, null, null, null];
+  ["qc_p1","qc_p2","qc_p3","qc_p4"].forEach((id, idx) => {
+    const box = $(id);
+    if (box) box.innerHTML = `<span class="small">${idx+1}</span>`;
+  });
+  if ($("qc_meta")) $("qc_meta").textContent = "0/4 seleccionadas.";
+  if ($("qc_cam")) $("qc_cam").value = "";
+  if ($("qc_file")) $("qc_file").value = "";
+}
+
+function renderQc(){
+  const ids = ["qc_p1","qc_p2","qc_p3","qc_p4"];
+  ids.forEach((id, idx) => {
+    const box = $(id);
+    if (!box) return;
+
+    const f = qcFiles[idx];
+    if (!f){
+      box.innerHTML = `<span class="small">${idx+1}</span>`;
+      return;
     }
 
-    function renderQc(){
-      const ids = ["qc_p1","qc_p2","qc_p3","qc_p4"];
-      ids.forEach((id, idx) => {
-        const box = $(id);
-        if (!box) return;
-        const f = qcFiles[idx];
-        if (!f){
-          box.innerHTML = `<span class="small">${idx+1}</span>`;
-          return;
-        }
-        const url = URL.createObjectURL(f);
-        box.innerHTML = `<img alt="qc" src="${url}">`;
-        setTimeout(() => URL.revokeObjectURL(url), 15000);
-      });
+    const url = URL.createObjectURL(f);
+    box.innerHTML = `<img alt="qc" src="${url}">`;
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  });
 
-      const chosen = qcFiles.filter(Boolean);
-      const total = chosen.reduce((a,f)=>a+(f.size||0),0);
-      $("qc_meta").textContent = `${chosen.length}/4 seleccionadas • ${humanBytes(total)} (mín 3)`;
-    }
+  const chosen = qcFiles.filter(Boolean);
+  const total = chosen.reduce((a,f)=>a+(f.size||0),0);
+  if ($("qc_meta")) $("qc_meta").textContent =
+    `${chosen.length}/4 seleccionadas • ${humanBytes(total)} (mín 3)`;
+}
 
-    function addQcOne(file){
-      if (!file) return;
-      qcFiles[0] = qcFiles[1];
-      qcFiles[1] = qcFiles[2];
-      qcFiles[2] = qcFiles[3];
-      qcFiles[3] = file;
-      renderQc();
-    }
+// mete al final y “empuja atrás” (igual que compresión)
+function addQcOne(file){
+  if (!file) return;
+  qcFiles[0] = qcFiles[1];
+  qcFiles[1] = qcFiles[2];
+  qcFiles[2] = qcFiles[3];
+  qcFiles[3] = file;
+  renderQc();
+}
 
-    function onPickQc(e){
-      const f = e.target && e.target.files && e.target.files[0];
-      if (!f) return;
-      addQcOne(f);
-      e.target.value = "";
-    }
+// 📷 Cámara: 1 foto
+function onPickQcCam(fileList){
+  const f = (fileList && fileList[0]) ? fileList[0] : null;
+  if (!f) return;
+  addQcOne(f);
+  $("qc_cam").value = "";
+}
 
-    $("btnQcCam").onclick   = () => $("qc_cam").click();
-    $("btnQcFile").onclick  = () => $("qc_file").click();
-    $("btnQcClear").onclick = clearQc;
+// 🖼️ Archivos: VARIAS fotos a la vez (se queda con las últimas 4)
+function onPickQcFiles(fileList){
+  const arr = Array.from(fileList || []);
+  if (!arr.length) return;
 
-    $("qc_cam").addEventListener("change", onPickQc);
-    $("qc_file").addEventListener("change", onPickQc);
+  const take = arr.slice(-4);
+  for (const f of take) addQcOne(f);
 
-    clearQc();
+  $("qc_file").value = "";
+}
 
-    $("btnQcUpload").onclick = async () => {
-      const vin = $("qcVin").value.trim();
-      const dateStr = ($("qcDate").value || todayYYYYMMDD());
-      if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
+// botones
+$("btnQcCam").onclick   = () => $("qc_cam").click();
+$("btnQcFile").onclick  = () => $("qc_file").click();
+$("btnQcClear").onclick = clearQc;
 
-      const chosen = qcFiles.filter(Boolean);
-      if (chosen.length < 3) { $("outQc").textContent = "⚠️ Debes subir mínimo 3 fotos de calidad."; return; }
+// listeners
+$("qc_cam").addEventListener("change", (e) => onPickQcCam(e.target.files));
+$("qc_file").addEventListener("change", (e) => onPickQcFiles(e.target.files));
 
-      const files = [];
-      for (let i = 0; i < 4; i++){
-        const f = qcFiles[i];
-        if (!f) continue;
-        const slot = `calidad_${i+1}`;
-        $("outQc").textContent = `Preparando ${slot}...\n`;
-        const b64 = await fileToB64Compressed(f);
-        files.push({ slot, mimeType: "image/jpeg", b64 });
-      }
+clearQc();
 
-      $("outQc").textContent = `Subiendo CALIDAD (${files.length} foto(s))...\n`;
+// ✅ ENVIAR CALIDAD (usa tu action uploadCalidad)
+$("btnQcUpload").onclick = async () => {
+  const vin = $("qcVin").value.trim();
+  const dateStr = ($("qcDate").value || todayYYYYMMDD());
+  if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
+
+  const chosen = qcFiles.filter(Boolean);
+  if (chosen.length < 3) { $("outQc").textContent = "⚠️ Debes subir mínimo 3 fotos de calidad."; return; }
+
+  const files = [];
+  for (let i = 0; i < 4; i++){
+    const f = qcFiles[i];
+    if (!f) continue;
+    const slot = `calidad_${i+1}`;
+    $("outQc").textContent = `Preparando ${slot}...\n`;
+    const b64 = await fileToB64Compressed(f);
+    files.push({ slot, mimeType: "image/jpeg", b64 });
+  }
+
+  if (files.length === 0) {
+    $("outQc").textContent = "⚠️ No seleccionaste fotos para calidad.";
+    return;
+  }
+
+  $("outQc").textContent = `Enviando CALIDAD (${files.length} foto(s))...\n`;
+  const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
+  if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
+
+  $("outQc").textContent =
+    `✅ Calidad registrada.\n` +
+    `Carpeta: ${j.carFolderName}/CALIDAD\n` +
+    `Guardados: ${(j.saved && j.saved.length) ? j.saved.length : files.length}`;
+
+  clearQc();
+};
+
+    
+    $("outQc").textContent = `Subiendo CALIDAD (${files.length} foto(s))...\n`;
       const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
       if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
 
