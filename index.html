@@ -1243,18 +1243,7 @@ $("btnQcUpload").onclick = async () => {
   clearQc();
 };
 
-    
-    $("outQc").textContent = `Subiendo CALIDAD (${files.length} foto(s))...\n`;
-      const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
-      if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
 
-      $("outQc").textContent =
-        `✅ Calidad registrada.\n` +
-        `Carpeta: ${j.carFolderName}/CALIDAD\n` +
-        `Guardados: ${j.saved.length}`;
-
-      clearQc();
-    };
   </script>
 
 </body>
