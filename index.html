@@ -565,6 +565,46 @@
       const day = String(d.getDate()).padStart(2,'0');
       return `${y}-${m}-${day}`;
     }
+
+    function getQueryParam(name){
+  try{
+    return new URLSearchParams(window.location.search).get(name) || "";
+  } catch {
+    return "";
+  }
+}
+
+function applyVinFromUrl(){
+  const vin = (getQueryParam("vin") || getQueryParam("VIN") || "").trim();
+  if (!vin) return;
+
+  // set en las 3 pantallas
+  if ($("vinText"))  $("vinText").value = vin;
+  if ($("fallaVin")) $("fallaVin").value = vin;
+  if ($("qcVin"))    $("qcVin").value = vin;
+
+  // fecha opcional por URL
+  const dateStr = (getQueryParam("date") || getQueryParam("fecha") || "").trim();
+  if (dateStr){
+    if ($("dateStr"))   $("dateStr").value = dateStr;
+    if ($("fallaDate")) $("fallaDate").value = dateStr;
+    if ($("qcDate"))    $("qcDate").value = dateStr;
+  }
+
+  // pantalla opcional por URL
+  const pantalla = (getQueryParam("pantalla") || getQueryParam("screen") || "").toLowerCase();
+  if (pantalla === "params") showScreen("params");
+  if (pantalla === "falla")  showScreen("falla");
+  if (pantalla === "calidad" || pantalla === "qc") showScreen("calidad");
+
+  // refresca estado si estamos en params
+  try { refreshStatus(); } catch {}
+}
+
+// correr al cargar
+applyVinFromUrl();
+
+    
     (function initDate(){
       $("dateStr").value = todayYYYYMMDD();
       $("fallaDate").value = todayYYYYMMDD();
