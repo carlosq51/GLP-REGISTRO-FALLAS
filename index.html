@@ -502,22 +502,21 @@ const CONTROL_HOST = "glp-control.onrender.com";
 const CONTROL_URL  = "https://glp-control.onrender.com/";
 
 $("btnBackControl").onclick = () => {
-  const ref = (document.referrer || "").toLowerCase();
+  const ref = (document.referrer || "").trim();
+  const CONTROL_URL = "https://glp-control.onrender.com/";
 
-  // ✅ Si venías desde Control (referrer)
-  if (ref.includes(CONTROL_HOST)) {
-    // vuelve a Control en LA MISMA pestaña (sin crear otra)
-    window.location.replace(ref || CONTROL_URL);
+  // ✅ Si venías desde Control: vuelve en la MISMA pestaña
+  if (ref.includes("glp-control.onrender.com")) {
+    window.location.href = ref;      // o usa replace si no quieres volver al uploader con "atrás"
+    // window.location.replace(ref);
     return;
   }
 
-  // ✅ Si NO hay referrer (abriste el uploader directo: QR, favorito, etc.)
+  // ✅ Si NO hay referrer: abre en NUEVA pestaña
   const w = window.open(CONTROL_URL, "_blank", "noopener,noreferrer");
-  if (!w) {
-    // fallback si el browser bloquea popups
-    window.location.href = CONTROL_URL;
-  }
+  if (!w) window.location.href = CONTROL_URL; // fallback si bloquea popups
 };
+
 
 
 
