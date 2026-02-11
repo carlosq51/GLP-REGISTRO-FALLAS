@@ -53,6 +53,29 @@
     .menuCard .btn{ width:100%; margin-top:10px; }
     textarea{ min-height: 90px; resize: vertical; }
 
+
+    /* ✅ BOTÓN VOLVER A CONTROL DE TRABAJO */
+.btnBackControl{
+  width: 100%;
+  max-width: 520px;
+  padding: 18px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 900;
+  background: #0b5fff;       /* azul consistente con tu app */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(11,95,255,.35);
+  transition: transform .08s ease, filter .12s ease;
+}
+
+.btnBackControl:active{
+  transform: scale(.98);
+  filter: brightness(.95);
+}
+
+    
     /* ✅ BOTÓN PRINCIPAL: SUBIR FOTOS */
     .btnPrimaryBig{
       width: 100%;
@@ -141,6 +164,16 @@
     <div class="box" style="margin-top:14px;">
       <div class="small"></div>
     </div>
+
+
+    <!-- ✅ BOTÓN REGRESO A CONTROL DE TRABAJO -->
+<div style="margin-top:22px; text-align:center;">
+  <button class="btnBackControl" id="btnBackControl">
+    ⬅️ Volver al Control de Trabajo
+  </button>
+</div>
+
+    
   </section>
 
   <!-- =========================
@@ -463,6 +496,13 @@
   <script>
     const APS_URL = "https://script.google.com/macros/s/AKfycbw8WdoYVKGU9ztmHv81c-GzcUxpaCdMn5mvk5XgqJQ7kicbivdr6DFRIgTEOq_nIUMV/exec";
     const $ = (id) => document.getElementById(id);
+
+    // ✅ VOLVER A APP DE CONTROL DE TRABAJO
+$("btnBackControl").onclick = () => {
+  // ⬇️ CAMBIA ESTA URL POR LA DE TU APP DE CONTROL
+  window.location.href = "https://TU-APP-CONTROL.render.com";
+};
+
 
     // ✅ LIGHTBOX FULLSCREEN (sirve para previews locales y de Drive)
     const imgModal = $("imgModal");
