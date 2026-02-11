@@ -53,29 +53,26 @@
     .menuCard .btn{ width:100%; margin-top:10px; }
     textarea{ min-height: 90px; resize: vertical; }
 
-
     /* ✅ BOTÓN VOLVER A CONTROL DE TRABAJO */
-.btnBackControl{
-  width: 100%;
-  max-width: 520px;
-  padding: 18px;
-  border-radius: 16px;
-  font-size: 18px;
-  font-weight: 900;
-  background: #0b5fff;       /* azul consistente con tu app */
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 10px 26px rgba(11,95,255,.35);
-  transition: transform .08s ease, filter .12s ease;
-}
+    .btnBackControl{
+      width: 100%;
+      max-width: 520px;
+      padding: 18px;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 900;
+      background: #0b5fff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 26px rgba(11,95,255,.35);
+      transition: transform .08s ease, filter .12s ease;
+    }
+    .btnBackControl:active{
+      transform: scale(.98);
+      filter: brightness(.95);
+    }
 
-.btnBackControl:active{
-  transform: scale(.98);
-  filter: brightness(.95);
-}
-
-    
     /* ✅ BOTÓN PRINCIPAL: SUBIR FOTOS */
     .btnPrimaryBig{
       width: 100%;
@@ -87,7 +84,7 @@
       font-size: 18px;
       font-weight: 900;
       letter-spacing: .4px;
-      background: #12b76a; /* verde fácil de identificar */
+      background: #12b76a;
       color: #fff;
       box-shadow: 0 10px 24px rgba(18,183,106,.30);
       transition: transform .08s ease, filter .12s ease;
@@ -165,15 +162,12 @@
       <div class="small"></div>
     </div>
 
-
     <!-- ✅ BOTÓN REGRESO A CONTROL DE TRABAJO -->
-<div style="margin-top:22px; text-align:center;">
-  <button class="btnBackControl" id="btnBackControl">
-    ⬅️ Volver al Control de Trabajo
-  </button>
-</div>
-
-    
+    <div style="margin-top:22px; text-align:center;">
+      <button class="btnBackControl" id="btnBackControl">
+        ⬅️ Volver al Control de Trabajo
+      </button>
+    </div>
   </section>
 
   <!-- =========================
@@ -224,7 +218,6 @@
       <div class="slotCard" data-slot="vin">
         <label>1) Foto del VIN</label>
 
-        <!-- ✅ IDs CORRECTOS (no duplicados) -->
         <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="vin_cam">
         <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="vin_file">
 
@@ -245,7 +238,6 @@
         <label>2) Compresión (toma 4 fotos)</label>
 
         <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="comp_cam">
-        <!-- ✅ multiple para seleccionar varias desde archivos -->
         <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="comp_file" multiple>
 
         <div class="slotActions">
@@ -344,7 +336,7 @@
     </div>
 
     <div class="row">
-      <button class="btnPrimaryBig" id="btnUpload">⬆️ SUBIR FOTOS</button>
+      <button class="btnPrimaryBig" id="btnUpload">🔄 REFRESCAR ESTADO</button>
     </div>
 
     <h3>Estado colaborativo</h3>
@@ -410,11 +402,6 @@
 
       <div class="row">
         <button class="btn2" id="btnEnviarFalla">ENVIAR FALLA</button>
-      </div>
-
-      <div class="small">
-        Nota: esta pantalla está lista. Si quieres, la conecto a tu Apps Script con un action tipo <b>uploadFalla</b>
-        que cree carpeta <b>CHASIS-FECHA/FALLAS</b> y suba todo ahí.
       </div>
     </div>
 
@@ -498,30 +485,21 @@
     const $ = (id) => document.getElementById(id);
 
     // ✅ VOLVER A APP DE CONTROL DE TRABAJO
-const CONTROL_HOST = "glp-control.onrender.com";
-const CONTROL_URL  = "https://glp-control.onrender.com/";
+    const CONTROL_URL  = "https://glp-control.onrender.com/";
 
-$("btnBackControl").onclick = () => {
-  const ref = (document.referrer || "").trim();
-  const CONTROL_URL = "https://glp-control.onrender.com/";
+    $("btnBackControl").onclick = () => {
+      const ref = (document.referrer || "").trim();
 
-  // ✅ Si venías desde Control: vuelve en la MISMA pestaña
-  if (ref.includes("glp-control.onrender.com")) {
-    window.location.href = ref;      // o usa replace si no quieres volver al uploader con "atrás"
-    // window.location.replace(ref);
-    return;
-  }
+      if (ref.includes("glp-control.onrender.com")) {
+        window.location.href = ref;
+        return;
+      }
 
-  // ✅ Si NO hay referrer: abre en NUEVA pestaña
-  const w = window.open(CONTROL_URL, "_blank", "noopener,noreferrer");
-  if (!w) window.location.href = CONTROL_URL; // fallback si bloquea popups
-};
+      const w = window.open(CONTROL_URL, "_blank", "noopener,noreferrer");
+      if (!w) window.location.href = CONTROL_URL;
+    };
 
-
-
-
-
-    // ✅ LIGHTBOX FULLSCREEN (sirve para previews locales y de Drive)
+    // ✅ LIGHTBOX FULLSCREEN
     const imgModal = $("imgModal");
     const imgModalImg = $("imgModalImg");
     const imgModalClose = $("imgModalClose");
@@ -596,7 +574,7 @@ $("btnBackControl").onclick = () => {
     });
 
     // =========================
-    // (Tu helper original)
+    // HELPERS
     // =========================
     const slotLabels = {
       vin: "Foto del VIN",
@@ -610,9 +588,7 @@ $("btnBackControl").onclick = () => {
       scan_carro: "Scan del carro",
     };
 
-    const slots = ["vin","comp_1","comp_2","comp_3","comp_4","corr_pre","corr_post","voltaje","scan_carro"];
     const selectedFilesBySlot = {};
-
     let compFilesVisual = [null, null, null, null];
 
     function todayYYYYMMDD() {
@@ -624,48 +600,43 @@ $("btnBackControl").onclick = () => {
     }
 
     function getQueryParam(name){
-  try{
-    return new URLSearchParams(window.location.search).get(name) || "";
-  } catch {
-    return "";
-  }
-}
+      try{
+        return new URLSearchParams(window.location.search).get(name) || "";
+      } catch {
+        return "";
+      }
+    }
 
-function applyVinFromUrl(){
-  const vin = (getQueryParam("vin") || getQueryParam("VIN") || "").trim();
-  if (!vin) return;
+    function applyVinFromUrl(){
+      const vin = (getQueryParam("vin") || getQueryParam("VIN") || "").trim();
+      if (!vin) return;
 
-  // set en las 3 pantallas
-  if ($("vinText"))  $("vinText").value = vin;
-  if ($("fallaVin")) $("fallaVin").value = vin;
-  if ($("qcVin"))    $("qcVin").value = vin;
+      if ($("vinText"))  $("vinText").value = vin;
+      if ($("fallaVin")) $("fallaVin").value = vin;
+      if ($("qcVin"))    $("qcVin").value = vin;
 
-  // fecha opcional por URL
-  const dateStr = (getQueryParam("date") || getQueryParam("fecha") || "").trim();
-  if (dateStr){
-    if ($("dateStr"))   $("dateStr").value = dateStr;
-    if ($("fallaDate")) $("fallaDate").value = dateStr;
-    if ($("qcDate"))    $("qcDate").value = dateStr;
-  }
+      const dateStr = (getQueryParam("date") || getQueryParam("fecha") || "").trim();
+      if (dateStr){
+        if ($("dateStr"))   $("dateStr").value = dateStr;
+        if ($("fallaDate")) $("fallaDate").value = dateStr;
+        if ($("qcDate"))    $("qcDate").value = dateStr;
+      }
 
-  // pantalla opcional por URL
-  const pantalla = (getQueryParam("pantalla") || getQueryParam("screen") || "").toLowerCase();
-  if (pantalla === "params") showScreen("params");
-  if (pantalla === "falla")  showScreen("falla");
-  if (pantalla === "calidad" || pantalla === "qc") showScreen("calidad");
+      const pantalla = (getQueryParam("pantalla") || getQueryParam("screen") || "").toLowerCase();
+      if (pantalla === "params") showScreen("params");
+      if (pantalla === "falla")  showScreen("falla");
+      if (pantalla === "calidad" || pantalla === "qc") showScreen("calidad");
 
-  // refresca estado si estamos en params
-  try { refreshStatus(); } catch {}
-}
+      try { refreshStatus(); } catch {}
+    }
 
-// correr al cargar
-applyVinFromUrl();
-
-    
     (function initDate(){
       $("dateStr").value = todayYYYYMMDD();
       $("fallaDate").value = todayYYYYMMDD();
+      $("qcDate").value = todayYYYYMMDD();
     })();
+
+    applyVinFromUrl();
 
     async function callAPS(payload){
       const res = await fetch(APS_URL, {
@@ -674,6 +645,50 @@ applyVinFromUrl();
         body: JSON.stringify(payload)
       });
       return res.json();
+    }
+
+    // ✅ SUBIR 1 FOTO AL TOQUE (uploadOne)
+    async function uploadOneClient_(slot, file, outId = "out", vinOverride = "", dateOverride = "") {
+      const out = $(outId);
+
+      const vin = (vinOverride || $("vinText")?.value || "").trim();
+      const dateStr = (dateOverride || $("dateStr")?.value || todayYYYYMMDD());
+
+      if (!vin) {
+        if (out) out.textContent = "❌ Falta VIN.";
+        return { ok:false, error:"Falta VIN" };
+      }
+
+      try {
+        if (out) out.textContent = `Preparando ${slot}...\n`;
+        const b64 = await fileToB64Compressed(file);
+
+        if (out) out.textContent = `Subiendo ${slot}...\n`;
+        const j = await callAPS({ action: "uploadOne", vin, dateStr, slot, mimeType: "image/jpeg", b64 });
+
+        if (!j.ok) {
+          if (out) out.textContent = `❌ uploadOne(${slot}): ${j.error}`;
+          return j;
+        }
+
+        if (j.preview) {
+          if (slot.startsWith("comp_")) {
+            const idx = Number(slot.split("_")[1] || "0");
+            if (idx >= 1 && idx <= 4) setRemoteCompPreview(idx, j.preview);
+          } else if (slot.startsWith("calidad_")) {
+            // si luego quieres: setRemoteQcPreview
+          } else {
+            setRemotePreview(slot, j.preview);
+          }
+        }
+
+        if (out) out.textContent = `✅ Guardado: ${slot}\n`;
+        return j;
+
+      } catch (e) {
+        if (out) out.textContent = `❌ Error ${slot}: ${e}`;
+        return { ok:false, error:String(e) };
+      }
     }
 
     function humanBytes(n){
@@ -752,16 +767,15 @@ applyVinFromUrl();
       };
     }
 
-    // ====== COMPRESIÓN ======
+    // ====== COMPRESIÓN (FIXED: sin duplicados + con onPickCompCam) ======
     function clearComp(){
       compFilesVisual = [null, null, null, null];
       ["comp_p1","comp_p2","comp_p3","comp_p4"].forEach((id, idx) => {
         $(id).innerHTML = `<span class="small">${idx+1}</span>`;
       });
       $("comp_meta").textContent = "Ningún archivo seleccionado.";
-      const cam = $("comp_cam"); const fil = $("comp_file");
-      if (cam) cam.value = "";
-      if (fil) fil.value = "";
+      if ($("comp_cam")) $("comp_cam").value = "";
+      if ($("comp_file")) $("comp_file").value = "";
     }
 
     function renderCompPreviews(){
@@ -779,34 +793,43 @@ applyVinFromUrl();
       });
 
       const chosen = compFilesVisual.filter(Boolean);
-      if (!chosen.length) $("comp_meta").textContent = "Ningún archivo seleccionado.";
-      else {
-        const totalSize = chosen.reduce((a,f)=>a+(f.size||0),0);
-        $("comp_meta").textContent = `${chosen.length}/4 seleccionadas • ${humanBytes(totalSize)} (entra al 4 y empuja atrás)`;
-      }
+      const totalSize = chosen.reduce((a,f)=>a+(f.size||0),0);
+      $("comp_meta").textContent = chosen.length
+        ? `${chosen.length}/4 seleccionadas • ${humanBytes(totalSize)}`
+        : "Ningún archivo seleccionado.";
     }
 
-    function addCompOne(file){
+    // - si hay hueco: usa el primer hueco (comp_1..comp_4)
+    // - si ya hay 4: reemplaza comp_4
+    async function addCompOne(file){
       if (!file) return;
-      compFilesVisual[0] = compFilesVisual[1];
-      compFilesVisual[1] = compFilesVisual[2];
-      compFilesVisual[2] = compFilesVisual[3];
-      compFilesVisual[3] = file;
+
+      let idx0 = compFilesVisual.findIndex(x => !x);
+      if (idx0 === -1) idx0 = 3;
+
+      compFilesVisual[idx0] = file;
       renderCompPreviews();
+
+      const slot = `comp_${idx0 + 1}`;
+      await uploadOneClient_(slot, file, "out");
+
+      try { await refreshStatus(); } catch {}
     }
 
-    function onPickCompCam(fileList){
+    async function onPickCompCam(fileList){
       const f = (fileList && fileList[0]) ? fileList[0] : null;
       if (!f) return;
-      addCompOne(f);
+      await addCompOne(f);
       $("comp_cam").value = "";
     }
 
-    function onPickCompFiles(fileList){
+    async function onPickCompFiles(fileList){
       const arr = Array.from(fileList || []);
       if (!arr.length) return;
+
       const take = arr.slice(-4);
-      for (const f of take) addCompOne(f);
+      for (const f of take) await addCompOne(f);
+
       $("comp_file").value = "";
     }
 
@@ -919,55 +942,9 @@ applyVinFromUrl();
       }
     }
 
-    // ====== UPLOAD ======
+    // ====== BOTÓN PRINCIPAL (FIXED): solo refresca, NO re-subir ======
     $("btnUpload").onclick = async () => {
-      const vin = $("vinText").value.trim();
-      const dateStr = ($("dateStr").value || todayYYYYMMDD());
-      if (!vin) { $("out").textContent = "❌ Falta VIN (texto)."; return; }
-
-      const files = [];
-
-      const singleSlots = ["vin","corr_pre","corr_post","voltaje","scan_carro"];
-      for (const slot of singleSlots){
-        const f = selectedFilesBySlot[slot];
-        if (f) {
-          $("out").textContent = `Preparando ${slot}...\n`;
-          const b64 = await fileToB64Compressed(f);
-          files.push({ slot, mimeType: "image/jpeg", b64 });
-        }
-      }
-
-      for (let i = 0; i < 4; i++){
-        const f = compFilesVisual[i];
-        if (!f) continue;
-        const slot = `comp_${i+1}`;
-        $("out").textContent = `Preparando ${slot}...\n`;
-        const b64 = await fileToB64Compressed(f);
-        files.push({ slot, mimeType: "image/jpeg", b64 });
-      }
-
-      if (files.length === 0) {
-        $("out").textContent = "⚠️ No seleccionaste ninguna foto para subir.";
-        await refreshStatus();
-        return;
-      }
-
-      $("out").textContent = `Subiendo ${files.length} foto(s)...\n`;
-      const j = await callAPS({ action: "uploadFiles", vin, dateStr, files });
-      if (!j.ok) { $("out").textContent = "❌ uploadFiles: " + j.error; return; }
-
-      $("out").textContent = "✅ Subido.\nRefrescando estado...\n";
-
-      for (const slot of Object.keys(selectedFilesBySlot)) {
-        delete selectedFilesBySlot[slot];
-        setPreview(slot, null);
-        const cam = $(`${slot}_cam`);
-        const file = $(`${slot}_file`);
-        if (cam) cam.value = "";
-        if (file) file.value = "";
-      }
-      clearComp();
-
+      $("out").textContent = "📡 Refrescando estado...";
       await refreshStatus();
     };
 
@@ -1000,16 +977,26 @@ applyVinFromUrl();
       }
     });
 
-    // ====== INPUTS NORMALES ======
+    // ====== INPUTS NORMALES (FIXED: sin duplicados afuera) ======
     function wireInput(slot){
       const cam = $(`${slot}_cam`);
       const fil = $(`${slot}_file`);
 
-      const onPick = (e) => {
+      const onPick = async (e) => {
         const f = e.target && e.target.files && e.target.files[0];
         if (!f) return;
-        selectedFilesBySlot[slot] = f;
+
         setPreview(slot, f);
+
+        const j = await uploadOneClient_(slot, f, "out");
+        if (j && j.ok) {
+          if (cam) cam.value = "";
+          if (fil) fil.value = "";
+          delete selectedFilesBySlot[slot];
+          try { await refreshStatus(); } catch {}
+        } else {
+          selectedFilesBySlot[slot] = f;
+        }
       };
 
       if (cam) cam.addEventListener("change", onPick);
@@ -1217,131 +1204,118 @@ applyVinFromUrl();
     };
 
     // =========================
-    // CONTROL CALIDAD (3 a 4 fotos)
+    // ✅ CONTROL CALIDAD (mín 3, máx 4)
     // =========================
+    let qcFiles = [null, null, null, null];
 
-    // =========================
-// ✅ CONTROL CALIDAD (mín 3, máx 4) + MULTI-SELECT + LIGHTBOX OK
-// =========================
-let qcFiles = [null, null, null, null];
-
-(function initQcDate(){
-  const qcDate = $("qcDate");
-  if (qcDate) qcDate.value = todayYYYYMMDD();
-})();
-
-function clearQc(){
-  qcFiles = [null, null, null, null];
-  ["qc_p1","qc_p2","qc_p3","qc_p4"].forEach((id, idx) => {
-    const box = $(id);
-    if (box) box.innerHTML = `<span class="small">${idx+1}</span>`;
-  });
-  if ($("qc_meta")) $("qc_meta").textContent = "0/4 seleccionadas.";
-  if ($("qc_cam")) $("qc_cam").value = "";
-  if ($("qc_file")) $("qc_file").value = "";
-}
-
-function renderQc(){
-  const ids = ["qc_p1","qc_p2","qc_p3","qc_p4"];
-  ids.forEach((id, idx) => {
-    const box = $(id);
-    if (!box) return;
-
-    const f = qcFiles[idx];
-    if (!f){
-      box.innerHTML = `<span class="small">${idx+1}</span>`;
-      return;
+    function clearQc(){
+      qcFiles = [null, null, null, null];
+      ["qc_p1","qc_p2","qc_p3","qc_p4"].forEach((id, idx) => {
+        const box = $(id);
+        if (box) box.innerHTML = `<span class="small">${idx+1}</span>`;
+      });
+      if ($("qc_meta")) $("qc_meta").textContent = "0/4 seleccionadas.";
+      if ($("qc_cam")) $("qc_cam").value = "";
+      if ($("qc_file")) $("qc_file").value = "";
     }
 
-    const url = URL.createObjectURL(f);
-    box.innerHTML = `<img alt="qc" src="${url}">`;
-    setTimeout(() => URL.revokeObjectURL(url), 15000);
-  });
+    function renderQc(){
+      const ids = ["qc_p1","qc_p2","qc_p3","qc_p4"];
+      ids.forEach((id, idx) => {
+        const box = $(id);
+        if (!box) return;
 
-  const chosen = qcFiles.filter(Boolean);
-  const total = chosen.reduce((a,f)=>a+(f.size||0),0);
-  if ($("qc_meta")) $("qc_meta").textContent =
-    `${chosen.length}/4 seleccionadas • ${humanBytes(total)} (mín 3)`;
-}
+        const f = qcFiles[idx];
+        if (!f){
+          box.innerHTML = `<span class="small">${idx+1}</span>`;
+          return;
+        }
 
-// mete al final y “empuja atrás” (igual que compresión)
-function addQcOne(file){
-  if (!file) return;
-  qcFiles[0] = qcFiles[1];
-  qcFiles[1] = qcFiles[2];
-  qcFiles[2] = qcFiles[3];
-  qcFiles[3] = file;
-  renderQc();
-}
+        const url = URL.createObjectURL(f);
+        box.innerHTML = `<img alt="qc" src="${url}">`;
+        setTimeout(() => URL.revokeObjectURL(url), 15000);
+      });
 
-// 📷 Cámara: 1 foto
-function onPickQcCam(fileList){
-  const f = (fileList && fileList[0]) ? fileList[0] : null;
-  if (!f) return;
-  addQcOne(f);
-  $("qc_cam").value = "";
-}
+      const chosen = qcFiles.filter(Boolean);
+      const total = chosen.reduce((a,f)=>a+(f.size||0),0);
+      if ($("qc_meta")) $("qc_meta").textContent =
+        `${chosen.length}/4 seleccionadas • ${humanBytes(total)} (mín 3)`;
+    }
 
-// 🖼️ Archivos: VARIAS fotos a la vez (se queda con las últimas 4)
-function onPickQcFiles(fileList){
-  const arr = Array.from(fileList || []);
-  if (!arr.length) return;
+    async function addQcOne(file){
+      if (!file) return;
 
-  const take = arr.slice(-4);
-  for (const f of take) addQcOne(f);
+      qcFiles[0] = qcFiles[1];
+      qcFiles[1] = qcFiles[2];
+      qcFiles[2] = qcFiles[3];
+      qcFiles[3] = file;
+      renderQc();
 
-  $("qc_file").value = "";
-}
+      const chosen = qcFiles.filter(Boolean);
+      const idx = chosen.length; // 1..4
+      const slot = `calidad_${idx}`;
 
-// botones
-$("btnQcCam").onclick   = () => $("qc_cam").click();
-$("btnQcFile").onclick  = () => $("qc_file").click();
-$("btnQcClear").onclick = clearQc;
+      const vin = $("qcVin").value.trim();
+      const dateStr = ($("qcDate").value || todayYYYYMMDD());
 
-// listeners
-$("qc_cam").addEventListener("change", (e) => onPickQcCam(e.target.files));
-$("qc_file").addEventListener("change", (e) => onPickQcFiles(e.target.files));
+      await uploadOneClient_(slot, file, "outQc", vin, dateStr);
+    }
 
-clearQc();
+    function onPickQcCam(fileList){
+      const f = (fileList && fileList[0]) ? fileList[0] : null;
+      if (!f) return;
+      addQcOne(f);
+      $("qc_cam").value = "";
+    }
 
-// ✅ ENVIAR CALIDAD (usa tu action uploadCalidad)
-$("btnQcUpload").onclick = async () => {
-  const vin = $("qcVin").value.trim();
-  const dateStr = ($("qcDate").value || todayYYYYMMDD());
-  if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
+    function onPickQcFiles(fileList){
+      const arr = Array.from(fileList || []);
+      if (!arr.length) return;
 
-  const chosen = qcFiles.filter(Boolean);
-  if (chosen.length < 3) { $("outQc").textContent = "⚠️ Debes subir mínimo 3 fotos de calidad."; return; }
+      const take = arr.slice(-4);
+      for (const f of take) addQcOne(f);
 
-  const files = [];
-  for (let i = 0; i < 4; i++){
-    const f = qcFiles[i];
-    if (!f) continue;
-    const slot = `calidad_${i+1}`;
-    $("outQc").textContent = `Preparando ${slot}...\n`;
-    const b64 = await fileToB64Compressed(f);
-    files.push({ slot, mimeType: "image/jpeg", b64 });
-  }
+      $("qc_file").value = "";
+    }
 
-  if (files.length === 0) {
-    $("outQc").textContent = "⚠️ No seleccionaste fotos para calidad.";
-    return;
-  }
+    $("btnQcCam").onclick   = () => $("qc_cam").click();
+    $("btnQcFile").onclick  = () => $("qc_file").click();
+    $("btnQcClear").onclick = clearQc;
 
-  $("outQc").textContent = `Enviando CALIDAD (${files.length} foto(s))...\n`;
-  const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
-  if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
+    $("qc_cam").addEventListener("change", (e) => onPickQcCam(e.target.files));
+    $("qc_file").addEventListener("change", (e) => onPickQcFiles(e.target.files));
 
-  $("outQc").textContent =
-    `✅ Calidad registrada.\n` +
-    `Carpeta: ${j.carFolderName}/CALIDAD\n` +
-    `Guardados: ${(j.saved && j.saved.length) ? j.saved.length : files.length}`;
+    clearQc();
 
-  clearQc();
-};
+    $("btnQcUpload").onclick = async () => {
+      const vin = $("qcVin").value.trim();
+      const dateStr = ($("qcDate").value || todayYYYYMMDD());
+      if (!vin) { $("outQc").textContent = "❌ Falta VIN."; return; }
 
+      const chosen = qcFiles.filter(Boolean);
+      if (chosen.length < 3) { $("outQc").textContent = "⚠️ Debes subir mínimo 3 fotos de calidad."; return; }
 
+      const files = [];
+      for (let i = 0; i < 4; i++){
+        const f = qcFiles[i];
+        if (!f) continue;
+        const slot = `calidad_${i+1}`;
+        $("outQc").textContent = `Preparando ${slot}...\n`;
+        const b64 = await fileToB64Compressed(f);
+        files.push({ slot, mimeType: "image/jpeg", b64 });
+      }
+
+      $("outQc").textContent = `Enviando CALIDAD (${files.length} foto(s))...\n`;
+      const j = await callAPS({ action: "uploadCalidad", vin, dateStr, files });
+      if (!j.ok) { $("outQc").textContent = "❌ uploadCalidad: " + j.error; return; }
+
+      $("outQc").textContent =
+        `✅ Calidad registrada.\n` +
+        `Carpeta: ${j.carFolderName}/CALIDAD\n` +
+        `Guardados: ${(j.saved && j.saved.length) ? j.saved.length : files.length}`;
+
+      clearQc();
+    };
   </script>
-
 </body>
 </html>
