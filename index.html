@@ -499,9 +499,19 @@
 
     // ✅ VOLVER A APP DE CONTROL DE TRABAJO
 $("btnBackControl").onclick = () => {
-  // ⬇️ CAMBIA ESTA URL POR LA DE TU APP DE CONTROL
-  window.location.href = "https://glp-control.onrender.com/";
+  // Si hay historial real (vienes desde Control)
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    // Si el uploader se abrió directo (QR, link, favorito, etc.)
+    window.open(
+      "https://glp-control.onrender.com/",
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
 };
+
 
 
     // ✅ LIGHTBOX FULLSCREEN (sirve para previews locales y de Drive)
