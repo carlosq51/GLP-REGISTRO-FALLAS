@@ -498,19 +498,27 @@
     const $ = (id) => document.getElementById(id);
 
     // ✅ VOLVER A APP DE CONTROL DE TRABAJO
+const CONTROL_HOST = "glp-control.onrender.com";
+const CONTROL_URL  = "https://glp-control.onrender.com/";
+
 $("btnBackControl").onclick = () => {
-  // Si hay historial real (vienes desde Control)
-  if (window.history.length > 1) {
-    window.history.back();
-  } else {
-    // Si el uploader se abrió directo (QR, link, favorito, etc.)
-    window.open(
-      "https://glp-control.onrender.com/",
-      "_blank",
-      "noopener,noreferrer"
-    );
+  const ref = (document.referrer || "").toLowerCase();
+
+  // ✅ Si venías desde Control (referrer)
+  if (ref.includes(CONTROL_HOST)) {
+    // vuelve a Control en LA MISMA pestaña (sin crear otra)
+    window.location.replace(ref || CONTROL_URL);
+    return;
+  }
+
+  // ✅ Si NO hay referrer (abriste el uploader directo: QR, favorito, etc.)
+  const w = window.open(CONTROL_URL, "_blank", "noopener,noreferrer");
+  if (!w) {
+    // fallback si el browser bloquea popups
+    window.location.href = CONTROL_URL;
   }
 };
+
 
 
 
