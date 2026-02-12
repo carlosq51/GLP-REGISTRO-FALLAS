@@ -156,6 +156,20 @@
         <p class="menuDesc">Pantalla de control de calidad.</p>
         <button class="btn" id="goCalidad">Entrar</button>
       </div>
+
+
+      <div class="menuCard">
+        <p class="menuTitle">Conformidad equipo (TANQUE)</p>
+        <p class="menuDesc">Checklist + foto del equipo + nombre del técnico.</p>
+        <button class="btn" id="goConfTanque">Entrar</button>
+      </div>
+      
+      <div class="menuCard">
+        <p class="menuTitle">Conformidad equipo (REDUCTOR)</p>
+        <p class="menuDesc">Checklist + foto del equipo + nombre del técnico.</p>
+        <button class="btn" id="goConfReductor">Entrar</button>
+      </div>
+
     </div>
 
     <div class="box" style="margin-top:14px;">
@@ -473,6 +487,97 @@
     <div id="outQc" class="status">Listo.</div>
   </section>
 
+    <!-- =========================
+       PANTALLA 4: CONFORMIDAD EQUIPOS (TANQUE / REDUCTOR)
+       ========================= -->
+  <section id="screenConformidad" class="screen">
+    <div class="topbar">
+      <h2 id="confTitle">Conformidad de equipos</h2>
+      <button class="btn3" type="button" data-nav="menu">⬅ Volver</button>
+    </div>
+
+    <div class="box">
+      <div class="row">
+        <label>Tipo de conformidad</label>
+        <input id="confTipo" type="text" disabled value="TANQUE" />
+        <div class="small">Se define desde el menú (TANQUE o REDUCTOR).</div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="btnScanQR_conf">Escanear SOLO QR</button>
+        <button class="btn" id="btnScanBAR_conf">Escanear SOLO BARRAS</button>
+        <button class="btn3" id="btnStop_conf" style="display:none;">Detener</button>
+        <div class="small" id="scanMsg_conf"></div>
+      </div>
+
+      <div id="qrBox_conf" style="display:none; margin-top:10px;">
+        <div class="small" id="scanMode_conf" style="margin-bottom:8px;"></div>
+        <div id="qrReader_conf" class="qrReader"></div>
+      </div>
+
+      <div class="row">
+        <label>VIN</label>
+        <input id="confVin" type="text" placeholder="VIN..." />
+      </div>
+
+      <div class="row">
+        <label>Fecha</label>
+        <input id="confDate" type="date" />
+      </div>
+
+      <div class="row">
+        <label>Nombre del técnico</label>
+        <input id="confTecnico" type="text" placeholder="Ej: Juan Pérez" />
+      </div>
+
+      <div class="slotCard" style="margin-top:10px;">
+        <label>Checklist de conformidad</label>
+
+        <div class="row" style="margin-top:8px;">
+          <label style="font-weight:600; display:flex; gap:10px; align-items:flex-start;">
+            <input type="checkbox" id="chk1" />
+            <span>Revisé el equipo con tiempo</span>
+          </label>
+
+          <label style="font-weight:600; display:flex; gap:10px; align-items:flex-start; margin-top:10px;">
+            <input type="checkbox" id="chk2" />
+            <span>Me hago responsable de la pérdida de algún material después de darle los términos</span>
+          </label>
+
+          <label style="font-weight:600; display:flex; gap:10px; align-items:flex-start; margin-top:10px;">
+            <input type="checkbox" id="chk3" />
+            <span>Todo conforme con el equipo</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="slotCard" style="margin-top:10px;">
+        <label>Foto del equipo (1)</label>
+
+        <input class="hiddenInput" type="file" accept="image/*;capture=camera" capture="environment" id="conf_cam">
+        <input class="hiddenInput" type="file" accept="image/*,.heic,.heif" id="conf_file">
+
+        <div class="slotActions">
+          <button class="btn3" type="button" id="btnConfCam">📷 Tomar foto</button>
+          <button class="btn3" type="button" id="btnConfFile">🖼️ Subir archivo</button>
+          <button class="btn3" type="button" id="btnConfClear">🧹 Quitar</button>
+        </div>
+
+        <div class="mini">
+          <div class="thumb" id="conf_previewBox"><span class="small">Sin foto</span></div>
+          <div class="miniInfo" id="conf_meta">Ningún archivo seleccionado.</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btnPrimaryBig" id="btnEnviarConf">✅ ENVIAR CONFORMIDAD</button>
+      </div>
+    </div>
+
+    <div id="outConf" class="status">Listo.</div>
+  </section>
+
+
   <!-- ✅ VISOR FULLSCREEN (LIGHTBOX) -->
   <div id="imgModal" class="imgModal" aria-hidden="true">
     <button type="button" class="imgModalClose" id="imgModalClose">✕</button>
@@ -539,11 +644,13 @@
     // ✅ NAV ENTRE PANTALLAS
     // =========================
     const screens = {
-      menu: $("screenMenu"),
-      params: $("screenParams"),
-      falla: $("screenFalla"),
-      calidad: $("screenCalidad")
-    };
+  menu: $("screenMenu"),
+  params: $("screenParams"),
+  falla: $("screenFalla"),
+  calidad: $("screenCalidad"),
+  conformidad: $("screenConformidad")
+};
+
 
     function showScreen(name){
       Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -565,6 +672,30 @@
       $("qcDate").value = ($("dateStr")?.value || todayYYYYMMDD());
       showScreen("calidad");
     };
+
+    function openConformidad(tipo){ // "TANQUE" | "REDUCTOR"
+  $("confTipo").value = tipo;
+  $("confTitle").textContent = `Conformidad equipo (${tipo})`;
+
+  const vin = $("vinText")?.value?.trim() || "";
+  if (vin) $("confVin").value = vin;
+
+  $("confDate").value = ($("dateStr")?.value || todayYYYYMMDD());
+
+  // reset checklist + foto
+  $("chk1").checked = false;
+  $("chk2").checked = false;
+  $("chk3").checked = false;
+
+  confFile = null;
+  renderConfPhoto();
+
+  showScreen("conformidad");
+}
+
+$("goConfTanque").onclick   = () => openConformidad("TANQUE");
+$("goConfReductor").onclick = () => openConformidad("REDUCTOR");
+
 
     document.addEventListener("click", (ev) => {
       const b = ev.target.closest("button");
@@ -631,10 +762,13 @@
     }
 
     (function initDate(){
-      $("dateStr").value = todayYYYYMMDD();
-      $("fallaDate").value = todayYYYYMMDD();
-      $("qcDate").value = todayYYYYMMDD();
-    })();
+  const t = todayYYYYMMDD();
+  $("dateStr").value = t;
+  $("fallaDate").value = t;
+  $("qcDate").value = t;
+  if ($("confDate")) $("confDate").value = t; // ✅ nuevo
+})();
+
 
     applyVinFromUrl();
 
@@ -949,6 +1083,28 @@
     };
 
     // ====== BOTONES TOMAR/SUBIR/QUITAR ======
+
+
+    // ✅ botones foto conformidad
+if ($("btnConfCam"))  $("btnConfCam").onclick  = () => $("conf_cam").click();
+if ($("btnConfFile")) $("btnConfFile").onclick = () => $("conf_file").click();
+if ($("btnConfClear")) $("btnConfClear").onclick = () => { confFile = null; renderConfPhoto(); };
+
+if ($("conf_cam")) {
+  $("conf_cam").addEventListener("change", (e) => {
+    confFile = (e.target.files && e.target.files[0]) ? e.target.files[0] : null;
+    renderConfPhoto();
+    e.target.value = "";
+  });
+}
+if ($("conf_file")) {
+  $("conf_file").addEventListener("change", (e) => {
+    confFile = (e.target.files && e.target.files[0]) ? e.target.files[0] : null;
+    renderConfPhoto();
+    e.target.value = "";
+  });
+}
+
     document.addEventListener("click", (ev) => {
       const btn = ev.target.closest("button");
       if (!btn) return;
@@ -1008,9 +1164,12 @@
     // =========================================================
     // ✅ 3 SCANNERS INDEPENDIENTES (PARAMS / FALLA / CALIDAD)
     // =========================================================
-    let qrParams = null;
-    let qrFalla  = null;
-    let qrQc     = null;
+    // ✅ 4 SCANNERS INDEPENDIENTES (PARAMS / FALLA / CALIDAD / CONFORMIDAD)
+let qrParams = null;
+let qrFalla  = null;
+let qrQc     = null;
+let qrConf   = null;
+
 
     function normalizeScanText(t){
       return String(t || "").replace(/\s+/g, "").trim();
@@ -1018,10 +1177,12 @@
 
     async function stopScanner(which){
       const map = {
-        params: { inst: () => qrParams, box:"qrBox_params", stop:"btnStop_params", mode:"scanMode_params" },
-        falla:  { inst: () => qrFalla,  box:"qrBox_falla",  stop:"btnStop_falla",  mode:"scanMode_falla"  },
-        qc:     { inst: () => qrQc,     box:"qrBox_qc",     stop:"btnStop_qc",     mode:"scanMode_qc"     }
-      };
+  params: { inst: () => qrParams, box:"qrBox_params", stop:"btnStop_params", mode:"scanMode_params" },
+  falla:  { inst: () => qrFalla,  box:"qrBox_falla",  stop:"btnStop_falla",  mode:"scanMode_falla"  },
+  qc:     { inst: () => qrQc,     box:"qrBox_qc",     stop:"btnStop_qc",     mode:"scanMode_qc"     },
+  conf:   { inst: () => qrConf,   box:"qrBox_conf",   stop:"btnStop_conf",   mode:"scanMode_conf"   } // ✅ nuevo
+};
+
 
       const m = map[which];
       if (!m) return;
@@ -1044,13 +1205,28 @@
       await stopScanner(which);
 
       const cfg = {
-        params: { readerId:"qrReader_params", box:"qrBox_params", stop:"btnStop_params", msg:"scanMsg_params", mode:"scanMode_params",
-                  setVin:(v)=>{$("vinText").value=v; refreshStatus();}, getInst:()=>qrParams, setInst:(v)=>qrParams=v },
-        falla:  { readerId:"qrReader_falla",  box:"qrBox_falla",  stop:"btnStop_falla",  msg:"scanMsg_falla",  mode:"scanMode_falla",
-                  setVin:(v)=>{$("fallaVin").value=v;}, getInst:()=>qrFalla,  setInst:(v)=>qrFalla=v  },
-        qc:     { readerId:"qrReader_qc",     box:"qrBox_qc",     stop:"btnStop_qc",     msg:"scanMsg_qc",     mode:"scanMode_qc",
-                  setVin:(v)=>{$("qcVin").value=v;}, getInst:()=>qrQc,     setInst:(v)=>qrQc=v     }
-      };
+  params: { readerId:"qrReader_params", box:"qrBox_params", stop:"btnStop_params", msg:"scanMsg_params", mode:"scanMode_params",
+            setVin:(v)=>{$("vinText").value=v; refreshStatus();}, getInst:()=>qrParams, setInst:(v)=>qrParams=v },
+
+  falla:  { readerId:"qrReader_falla",  box:"qrBox_falla",  stop:"btnStop_falla",  msg:"scanMsg_falla",  mode:"scanMode_falla",
+            setVin:(v)=>{$("fallaVin").value=v;}, getInst:()=>qrFalla,  setInst:(v)=>qrFalla=v  },
+
+  qc:     { readerId:"qrReader_qc",     box:"qrBox_qc",     stop:"btnStop_qc",     msg:"scanMsg_qc",     mode:"scanMode_qc",
+            setVin:(v)=>{$("qcVin").value=v;}, getInst:()=>qrQc,     setInst:(v)=>qrQc=v     },
+
+  // ✅ NUEVO: CONFORMIDAD
+  conf:   {
+    readerId:"qrReader_conf",
+    box:"qrBox_conf",
+    stop:"btnStop_conf",
+    msg:"scanMsg_conf",
+    mode:"scanMode_conf",
+    setVin:(v)=>{ $("confVin").value = v; },
+    getInst:()=>qrConf,
+    setInst:(v)=>qrConf=v
+  }
+};
+
 
       const c = cfg[which];
       if (!c) return;
@@ -1098,6 +1274,11 @@
       }
     }
 
+    $("btnScanQR_conf").onclick  = () => startScanner("conf","QR");
+$("btnScanBAR_conf").onclick = () => startScanner("conf","BAR");
+$("btnStop_conf").onclick    = () => stopScanner("conf");
+
+
     $("btnScanQR_params").onclick  = () => startScanner("params","QR");
     $("btnScanBAR_params").onclick = () => startScanner("params","BAR");
     $("btnStop_params").onclick    = () => stopScanner("params");
@@ -1109,6 +1290,30 @@
     $("btnScanQR_qc").onclick      = () => startScanner("qc","QR");
     $("btnScanBAR_qc").onclick     = () => startScanner("qc","BAR");
     $("btnStop_qc").onclick        = () => stopScanner("qc");
+
+    // =========================
+// ✅ CONFORMIDAD: 1 foto + checklist + técnico
+// =========================
+let confFile = null;
+
+function renderConfPhoto(){
+  const box = $("conf_previewBox");
+  const meta = $("conf_meta");
+  if (!box || !meta) return;
+
+  if (!confFile){
+    box.innerHTML = `<span class="small">Sin foto</span>`;
+    meta.textContent = "Ningún archivo seleccionado.";
+    return;
+  }
+
+  meta.textContent = `${confFile.name || "(foto)"} • ${humanBytes(confFile.size || 0)}`;
+  const url = URL.createObjectURL(confFile);
+  box.innerHTML = `<img alt="equipo" src="${url}">`;
+  setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
+
+    
 
     // =========================
     // FALLAS: lista dinámica
@@ -1162,6 +1367,60 @@
       fallaFiles.push(...arr);
       renderFalla();
     }
+
+    // =========================
+// ✅ ENVIAR CONFORMIDAD
+// =========================
+if ($("btnEnviarConf")) {
+  $("btnEnviarConf").onclick = async () => {
+    const tipo = ($("confTipo").value || "").trim(); // "TANQUE" | "REDUCTOR"
+    const vin = ($("confVin").value || "").trim();
+    const dateStr = ($("confDate").value || todayYYYYMMDD());
+    const tecnico = ($("confTecnico").value || "").trim();
+
+    const checklist = {
+      revisadoConTiempo: !!$("chk1").checked,
+      responsablePerdida: !!$("chk2").checked,
+      todoConforme: !!$("chk3").checked
+    };
+
+    if (!vin) { $("outConf").textContent = "❌ Falta VIN."; return; }
+    if (!tecnico) { $("outConf").textContent = "❌ Falta nombre del técnico."; return; }
+    if (!confFile) { $("outConf").textContent = "❌ Falta foto del equipo."; return; }
+
+    // si quieres obligar que estén los 3 checks:
+    if (!checklist.revisadoConTiempo || !checklist.responsablePerdida || !checklist.todoConforme) {
+      $("outConf").textContent = "⚠️ Debes marcar los 3 checks de conformidad.";
+      return;
+    }
+
+    $("outConf").textContent = "Preparando foto...\n";
+    const b64 = await fileToB64Compressed(confFile);
+
+    $("outConf").textContent = "Enviando conformidad...\n";
+    const j = await callAPS({
+      action: "uploadConformidad",
+      tipo, vin, dateStr, tecnico, checklist,
+      file: { mimeType: "image/jpeg", b64 }
+    });
+
+    if (!j.ok) { $("outConf").textContent = "❌ uploadConformidad: " + j.error; return; }
+
+    $("outConf").textContent =
+      `✅ Conformidad registrada.\n` +
+      `Tipo: ${tipo}\n` +
+      `Carpeta: ${j.carFolderName}/${j.mainFolderName}/${j.subFolderName}\n` +
+      `Acta: ${j.actaName}\n` +
+      `Foto: ${j.photoName}`;
+
+    // reset
+    confFile = null;
+    renderConfPhoto();
+  };
+}
+
+renderConfPhoto();
+
 
     $("btnFallaCam").onclick   = () => $("falla_cam").click();
     $("btnFallaFile").onclick  = () => $("falla_file").click();
